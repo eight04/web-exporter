@@ -1,0 +1,41 @@
+{
+	"manifest_version": 2,
+	"version": "0.0.0",
+	"name": "Web Exporter",
+	"description": "__MSG_extensionDescription__",
+	"author": "eight",
+	"homepage_url": "https://github.com/eight04/web-exporter",
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "web-exporter@eight04.blogspot.com",
+      "strict_min_version": "141.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+		}
+	},
+	"permissions": [
+		"storage",
+		"sidebarAction",
+		"notifications",
+		"<all_urls>",
+    "webRequest",
+    "webRequestBlocking"
+	],
+  "browser_action": {
+    "default_title": "Web Exporter",
+    "default_icon": "images/icon.svg"
+  },
+	"background": {
+		"scripts": []
+	},
+	"sidebar_action": {
+    "default_panel": "sidebar.html",
+		"default_title": "Web Exporter",
+		"default_icon": "images/icon.svg"
+	},
+	"icons": {
+		"32": "images/icon.svg"
+	},
+	"default_locale": "en"
+}

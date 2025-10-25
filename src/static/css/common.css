@@ -1,0 +1,71 @@
+:root {
+  --c-text: #000000;
+  --c-text-d: #4d4d4d;
+  --c-text-d2: #737373;
+  --c-bg: #ffffff;
+  --c-bg-l: #f2f2f2;
+  --c-bg-l2: #e6e6e6;
+  --c-a: #1a0dab;
+  --c-a-h: #551a8b;
+}
+
+/* add dark theme */
+@media (prefers-color-scheme: dark) { /* stylelint-disable-line */
+  :root {
+    --c-text: #e0e0e0;
+    --c-text-d: #a0a0a0;
+    --c-text-d2: #737373;
+    --c-bg: #23222b;
+    --c-bg-l: #2b2a33;
+    --c-bg-l2: #34343e;
+    --c-a: #8ab4f8;
+    --c-a-h: #a3c9ff;
+  }
+}
+
+* {
+	box-sizing: border-box;
+}
+html, body {
+	margin: 0;
+}
+body {
+	font: caption;
+	font-size: 16px;
+  color: var(--c-text);
+  background-color: var(--c-bg);
+}
+a {
+  color: var(--c-a);
+  text-decoration: none;
+  &:hover {
+    color: var(--c-a-h);
+    text-decoration: underline;
+  }
+}
+input[type=text],
+input[type=number],
+input[type=range],
+textarea,
+select {
+	display: block;
+	width: 100%;
+	min-width: 0;
+}
+input[type=number] {
+	text-align: right;
+}
+input, button, select, textarea {
+	padding: 0.3em;
+	font-family: inherit;
+	font-size: 0.9em;
+  color: inherit;
+  background-color: var(--c-bg-l);
+  border: 1px solid var(--c-text-d);
+  &:not(:disabled):is(:hover, :active) {
+    background-color: var(--c-bg-l2);
+  }
+}
+:disabled {
+  opacity: 0.5;
+}

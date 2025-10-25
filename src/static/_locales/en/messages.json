@@ -1,0 +1,12 @@
+{
+	"extensionDescription": {
+		"message": "A webextension to export data, media from websites.",
+		"description": "Description of the extension"
+	},
+  "ok": {
+    "message": "OK"
+  },
+  "cancel": {
+    "message": "Cancel"
+  }
+}

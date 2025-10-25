@@ -1,0 +1,81 @@
+id: plurk
+
+db:
+  - version: 1
+    schema:
+      users: id, nickname, display_name
+      plurks: id, user_id
+      responses: id, user_id, plurk_id
+
+extractors:
+  main_page_user:
+    url: https://www.plurk.com/:user_name
+    steps:
+      - use: response
+        type: text
+      - use: re
+        pattern: 'var GLOBAL=([^\n]+);?\n'
+        ret: $1
+      - use: json_parse
+        unwrap_new_date: true
+      - use: json_get
+        path: page_user
+      - use: store
+        key: users
+        method: put
+
+  main_page_pinned_plurks:
+    url: https://www.plurk.com/:user_name
+    steps:
+      - use: response
+        type: text
+      - use: re
+        pattern: 'PINNED_PLURK = ([^\n]+);\n'
+        ret: $1
+      - use: json_parse
+        unwrap_new_date: true
+      - use: store
+        key: plurks
+        method: putMany
+
+  main_page_plurks:
+    url: https://www.plurk.com/:user_name
+    steps:
+      - use: response
+        type: text
+      - use: re
+        pattern: 'PUBLIC_PLURKS = ([^\n]+);\n'
+        ret: $1
+      - use: json_parse
+        unwrap_new_date: true
+      - use: store
+        key: plurks
+        method: putMany
+
+  api_get_plurks:
+    url: https://www.plurk.com/TimeLine/getPlurks
+    steps:
+      - use: response
+        type: json
+      - use: json_get
+        path: plurks
+      - use: store
+        key: plurks
+        method: putMany
+
+  api_responses:
+    url: https://www.plurk.com/v2/plurk/:plurk_id/responses/seen
+    steps:
+      - use: response
+        type: json
+      - use: json_get
+        path: responses
+      - use: store
+        key: responses
+        method: putMany
+
+markers:
+  plurks:
+    detect_media: content_raw
+  responses:
+    detect_media: content_raw
