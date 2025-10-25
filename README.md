@@ -5,7 +5,7 @@ web-exporter
 
 A webextension inspired by twitter-web-exporter. It allows you to export data, media from different websites.
 
-* Uses webextensions API for better compatibility.
+* Use webRequest API for better compatibility. Therefore it doesn't support Chrome.
 * Modular design for easy adding new sites.
 
 Currently it only supports plurk.com.
