@@ -15,10 +15,9 @@
 		}
 	},
 	"permissions": [
-		"storage",
-		"sidebarAction",
+    "<all_urls>",
+		"unlimitedStorage",
 		"notifications",
-		"<all_urls>",
     "webRequest",
     "webRequestBlocking"
 	],
