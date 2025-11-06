@@ -2,6 +2,7 @@ import Dexie from "dexie/dist/modern/dexie.mjs";
 
 import sites from "../sites/index.mjs";
 import logger from "./logger.mjs";
+import {_} from "./i18n.mjs";
 
 const CONNECTED_STORES = {};
 
@@ -14,33 +15,20 @@ class Store {
     this.site = site;
   }
   async put({extractor_id, key, value}) {
-    const primKey = this.db[key].schema.primKey.name; // TODO: this won't work with compound primary key
-    logger.log(`Storing item to ${key} (ID: ${value[primKey]})...`);
-
-    value.extractor_id = extractor_id;
-    try {
-      await this.db[key].add(value);
-      logger.log(`Done.`);
-    } catch (e) {
-      logger.log(`Add to ${key} failed: ${e.message}`);
-    }
+    return await this.putMany({extractor_id, key, value: [value]});
   }
   async putMany({extractor_id, key, value}) {
-    const primKey = this.db[key].schema.primKey.name; // TODO: this won't work with compound primary key
-    const addedIds = value.map(v => {
-      return v[primKey];
-    });
-    logger.log(`Storing ${value.length} items to ${key} (IDs: ${addedIds.join(", ")})...`);
+    logger.log(_("storePutMany", [value.length, key]));
     value.forEach(v => {
       v.extractor_id = extractor_id;
     });
     // https://dexie.org/docs/DexieErrors/Dexie.BulkError
     try {
       await this.db[key].bulkAdd(value);
-      logger.log(`Done.`);
+      logger.log(_("storePutManySuccess"));
     } catch (e) {
       if (e.name === "BulkError") {
-        logger.log(`Bulk add failed: ${e.failures.length} failures.`);
+        logger.log(_("storePutManyPartial", [e.failures.length]));
       } else {
         throw e;
       }
@@ -73,8 +61,8 @@ export async function deleteAllDatabases() {
   await disconnectAllStores();
   const siteIds = Object.keys(sites);
   for (const siteId of siteIds) {
-    logger.log(`Deleting database for site ${siteId}...`);
+    logger.log(_("storeDeleteDB", [siteId]));
     await Dexie.delete(`web_exporter/sites/${siteId}`);
-    logger.log(`Deleted database for site ${siteId}.`);
+    logger.log(_("storeDeleteDBSuccess"));
   }
 }

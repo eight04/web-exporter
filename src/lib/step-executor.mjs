@@ -3,6 +3,7 @@ import {IMAGE, URL} from "linkify-plus-plus-core/lib/rx.js";
 import {getStore} from "./store.mjs";
 import downloader from "./downloader.mjs";
 import logger from "./logger.mjs";
+import {_} from "./i18n.mjs";
 
 const RESPONSE_TYPE = {
   text: (ctx) => {
@@ -136,7 +137,7 @@ const STEPPER = {
         }
         result.push(o);
       } else {
-        logger.log(`No matching row found in table '${step.table}' for key '${row[step.left_key]}'`);
+        logger.log(_("joinTableIndexError", [step.table, step.right_key, row[step.left_key]]));
       }
     }
     return result;

@@ -1,6 +1,7 @@
 <script>
 import browser from "webextension-polyfill";
 import {tick} from "svelte";
+import { _ } from "../lib/i18n.mjs";
 
 const logs = $state([]); // { id: number, message: string }[]
 const port = browser.runtime.connect({ name: "logger" });
@@ -40,19 +41,19 @@ async function startExport() {
 async function exportMedia() {
   const tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportMedia" }));
   if (tasks.length === 0) {
-    alert("No media URLs to export.");
+    alert(_("exportNoData"));
     return;
   }
   const text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
   await navigator.clipboard.writeText(text);
-  alert(`Copied ${tasks.length} media URLs to clipboard.`);
+  alert(_("exportCopied", { count: tasks.length }));
 }
 
 function deleteDB() {
-  if (confirm("Are you sure you want to delete the database? This action cannot be undone.")) {
+  if (confirm(_("storeDeleteDBConfirm"))) {
     browser.runtime.sendMessage({ method: "deleteDatabase" }).then(() => {
       logs.length = 0;
-      logs.push({ id: Date.now(), message: "Database deleted." });
+      logs.push({ id: Date.now(), message: _("storeDeleteDBSuccess") });
     });
   }
 }
@@ -71,16 +72,16 @@ async function disableButton(button, action) {
   <div class="actions">
     <button onclick={toggleRecording}>
       {#if recording}
-        Stop recording
+        {_("sidebarBtnStopRecording")}
       {:else}
-        Start recording
+        {_("sidebarBtnStartRecording")}
       {/if}
     </button>
     <button onclick={exportMedia}>
-      Export media
+      {_("sidebarBtnExportMedia")}
     </button>
     <button onclick={deleteDB}>
-      Delete database
+      {_("sidebarBtnDeleteDB")}
     </button>
   </div>
   <span class="logger-head">

@@ -8,5 +8,99 @@
   },
   "cancel": {
     "message": "Cancel"
+  },
+  "joinTableIndexError": {
+    "message": "No matching row found in '$TABLE$' for '$INDEX$' == $VALUE$",
+    "description": "Error message when no matching row is found in a join table.",
+    "placeholders": {
+      "TABLE": {
+        "content": "$1",
+        "example": "users"
+      },
+      "INDEX": {
+        "content": "$2",
+        "example": "id"
+      },
+      "VALUE": {
+        "content": "$3",
+        "example": "42"
+      }
+    }
+  },
+  "storePutMany": {
+    "message": "Storing $COUNT$ items to '$TABLE$'...",
+    "description": "Message shown when storing multiple items to a data store.",
+    "placeholders": {
+      "COUNT": {
+        "content": "$1",
+        "example": "10"
+      },
+      "TABLE": {
+        "content": "$2",
+        "example": "users"
+      }
+    }
+  },
+  "storePutManySuccess": {
+    "message": "Finished",
+    "description": "Message shown when storing multiple items to a data store is successful."
+  },
+  "storePutManyPartial": {
+    "message": "Finished with $COUNT$ errors",
+    "description": "Error message when storing multiple items to a data store fails.",
+    "placeholders": {
+      "COUNT": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "storeDeleteDB": {
+    "message": "Deleting database '$DB$'...",
+    "description": "Message shown when deleting a database.",
+    "placeholders": {
+      "DB": {
+        "content": "$1",
+        "example": "twitter"
+      }
+    }
+  },
+  "storeDeleteDBConfirm": {
+    "message": "Are you sure you want to delete the database? This action cannot be undone.",
+    "description": "Confirmation message before deleting a database."
+  },
+  "storeDeleteDBSuccess": {
+    "message": "Finished",
+    "description": "Message shown when deleting a database is successful."
+  },
+  "exportNoData": {
+    "message": "No data to export",
+    "description": "Message shown when there is no data to export."
+  },
+  "exportCopied": {
+    "message": "Exported $COUNT$ URLs copied to clipboard",
+    "description": "Message shown when exported data is copied to clipboard.",
+    "placeholders": {
+      "COUNT": {
+        "content": "$1",
+        "example": "10"
+      }
+    }
+  },
+  "sidebarBtnStartRecord": {
+    "message": "Start Recording",
+    "description": "Button text to start recording."
+  },
+  "sidebarBtnStopRecord": {
+    "message": "Stop Recording",
+    "description": "Button text to stop recording."
+  },
+  "sidebarBtnExportMedia": {
+    "message": "Export Media",
+    "description": "Button text to export recorded data."
+  },
+  "sidebarBtnDeleteDB": {
+    "message": "Delete Database",
+    "description": "Button text to delete recorded data."
   }
 }

@@ -67,7 +67,7 @@ function notifyError(err) {
   console.error(err);
 	browser.notifications.create({
 		type: "basic",
-		title: "Image Picka",
+		title: browser.runtime.getManifest().name,
 		message: err.message || String(err),
 		iconUrl: "images/icon.svg"
 	});
