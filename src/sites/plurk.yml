@@ -94,13 +94,18 @@ exporters:
             output: posted_date
           - use: re
             input: content_raw
-            pattern: RX_MEDIA_URL
+            pattern: URL
             all: true
+            output: media_urls
+          - use: filter
+            input: media_urls
+            condition: RX_IMAGE
             output: media_urls
           - use: download
             input: media_urls
             default_ext: jpg
-            filename: '{plurk_id}_{nick_name}_{index}_{posted_date:%y%m%d}.{ext}'
+            filename: '{plurk_id}_{nick_name}_{index}_{posted_date:%y%m%d}{ext}'
+
   responses:
     steps:
       - use: store
@@ -120,11 +125,15 @@ exporters:
             output: posted_date
           - use: re
             input: content_raw
-            pattern: RX_MEDIA_URL
+            pattern: URL
             all: true
+            output: media_urls
+          - use: filter
+            input: media_urls
+            condition: RX_IMAGE
             output: media_urls
           - use: download
             input: media_urls
             default_ext: jpg
-            filename: '{plurk_id}_r_{id}_{nick_name}_{index}_{posted_date:%y%m%d}.{ext}'
+            filename: '{plurk_id}_r_{id}_{nick_name}_{index}_{posted_date:%y%m%d}{ext}'
 

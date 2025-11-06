@@ -37,13 +37,14 @@ async function startExport() {
   await browser.tabs.create({ url: browser.runtime.getURL("export.html"), openerTabId: currentTab[0].id });
 }
 
-async function exportMediaURL() {
-  const urls = await disableButton(this, () => browser.runtime.sendMessage({ method: "prepareExportMediaURL" }));
-  if (urls.length === 0) {
+async function exportMedia() {
+  const tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportMedia" }));
+  if (tasks.length === 0) {
     alert("No media URLs to export.");
     return;
   }
-  prompt("Copy the media URLs below:", urls.join("\n"));
+  const text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
+  prompt("Copy the media URLs below:", text);
 }
 
 function deleteDB() {
@@ -74,8 +75,8 @@ async function disableButton(button, action) {
         Start recording
       {/if}
     </button>
-    <button onclick={exportMediaURL}>
-      Export media URL
+    <button onclick={exportMedia}>
+      Export media
     </button>
     <button onclick={deleteDB}>
       Delete database

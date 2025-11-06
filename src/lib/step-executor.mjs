@@ -1,4 +1,7 @@
+import {IMAGE, URL} from "linkify-plus-plus-core/lib/rx.js";
+
 import {getStore} from "./store.mjs";
+import downloader from "./downloader.mjs";
 import logger from "./logger.mjs";
 
 const RESPONSE_TYPE = {
@@ -20,8 +23,9 @@ const RESPONSE_TYPE = {
 }
 
 const DEFAULT_RX = {
-  RX_MEDIA_URL: /https?:\/\/[^\s"'<>]+?\.(?:mp4|webm|ogg|mp3|wav|flac|m4a|)(?:\?[^\s"'<>]*)?/gi,
-}
+  IMAGE,
+  URL
+};
 
 const STEPPER = {
   response: async (ctx, step) => {
@@ -35,31 +39,56 @@ const STEPPER = {
   },
   re: (ctx, step, input) => {
     if (!step.re) {
-      if (!step.match) {
-        if (step.pattern[0] === "/") {
-          const lastSlash = step.pattern.lastIndexOf("/");
-          step.match = step.pattern.slice(1, lastSlash);
-          step.flags = step.pattern.slice(lastSlash + 1);
-        } else {
-          step.match = step.pattern;
+      if (step.pattern in DEFAULT_RX) {
+        step.re = DEFAULT_RX[step.pattern];
+      } else {
+        if (!step.match) {
+          if (step.pattern[0] === "/") {
+            const lastSlash = step.pattern.lastIndexOf("/");
+            step.match = step.pattern.slice(1, lastSlash);
+            step.flags = step.pattern.slice(lastSlash + 1);
+          } else {
+            step.match = step.pattern;
+          }
         }
+        step.re = new RegExp(step.match, step.flags || "");
       }
-      step.re = new RegExp(step.match, step.flags || "");
     }
-    const result = step.re.exec(input);
-    if (!result) {
-      throw new Error(`Pattern not matched: ${step.re.toString()}`);
-    }
-    if (step.ret) {
-      // Return a specific capture group
-      // ret can be $1 or $name
-      const key = step.ret.slice(1);
-      if (result.groups && key in result.groups) {
-        return result.groups[key];
+    if (step.all && !step.reAll) {
+      if (!step.re.flags.includes("g")) {
+        step.reAll = new RegExp(step.re.source, step.re.flags + "g");
+      } else {
+        step.reAll = step.re;
       }
-      return result[Number(key)];
     }
-    return result[0]
+    let result;
+    const formatTemplate = (template, match) => {
+      if (!template) return match[0];
+      return template.replace(/\$(\d+|\w+)/g, (m, p1) => {
+        if (match.groups && p1 in match.groups) {
+          return match.groups[p1];
+        }
+        return match[Number(p1)];
+      });
+    }
+    if (step.all) {
+      result = [];
+      let match;
+      step.reAll.lastIndex = 0;
+      while ((match = step.reAll.exec(input)) !== null) {
+        result.push(formatTemplate(step.ret, match));
+      }
+      if (result.length === 0) {
+        console.warn(`Pattern not matched: ${step.reAll.toString()}`);
+      }
+    } else {
+      const match = step.re.exec(input);
+      if (!match) {
+        throw new Error(`Pattern not matched: ${step.re.toString()}`);
+      }
+      result = formatTemplate(step.ret, match);
+    }
+    return result
   },
   json_parse: (ctx, step, input) => {
     if (step.unwrap_new_date) {
@@ -83,7 +112,7 @@ const STEPPER = {
   },
   store: async (ctx, step, input) => {
     const store = getStore(ctx.site_id)
-    await store[step.method]({
+    return await store[step.method]({
       extractor_id: ctx.extractor_id,
       key: step.key,
       value: input
@@ -123,6 +152,31 @@ const STEPPER = {
   date: (ctx, step, input) => {
     const date = new Date(input);
     return date;
+  },
+  filter: (ctx, step, input) => {
+    let testFn;
+    if (step.condition.startsWith("RX_")) {
+      const pattern = step.condition.slice(3);
+      let re;
+      if (pattern in DEFAULT_RX) {
+        re = DEFAULT_RX[pattern];
+      } else {
+        re = new RegExp(pattern);
+      }
+      testFn = (it) => re.test(it);
+    } else {
+      throw new Error(`Unknown filter condition: ${step.condition}`);
+    }
+    const result = input.filter(item => {
+      return testFn(item);
+    });
+    return result;
+  },
+  download: async (ctx, step, input, model) => {
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
+    return await downloader.download(input, {...step, ctx: model});
   }
 }
 
@@ -134,7 +188,7 @@ export async function stepExecutor(ctx, model = null) {
     } else {
       input = model;
     }
-    const output = await STEPPER[step.use](ctx, step, input);
+    const output = await STEPPER[step.use](ctx, step, input, model);
     if ("output" in step) {
       model[step.output] = output;
     } else {

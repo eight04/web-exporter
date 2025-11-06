@@ -2,8 +2,9 @@
 import browser from "webextension-polyfill";
 
 import {extractor} from "./lib/extrator.mjs";
-import {exportMediaURL} from "./lib/store.mjs";
 import sites from "./sites/index.mjs";
+import {stepExecutor} from "./lib/step-executor.mjs";
+import downloader from "./lib/downloader.mjs";
 
 // this is used to log error raised by onMessage handler,
 // otherwise the stack trace will be removed after passing the error to the content script.
@@ -42,8 +43,8 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
       return Promise.resolve(extractor.running);
     case "deleteDatabase":
       return // TODO
-    case "prepareExportMediaURL":
-      return exportMediaURL();
+    case "exportMedia":
+      return exportMedia();
 	}
 }));
 
@@ -76,4 +77,16 @@ function closeTab({tabId, opener}) {
 		browser.tabs.update(opener, {active: true});
 	}
 	browser.tabs.remove(tabId);
+}
+
+async function exportMedia() {
+  for (const [site_id, site] of Object.entries(sites)) {
+    for (const exporter of Object.values(site.exporters)) {
+      const ctx = {...exporter, site_id};
+      await stepExecutor(ctx);
+    }
+  }
+  const tasks = downloader.getTasks();
+  downloader.clearTasks();
+  return tasks;
 }
