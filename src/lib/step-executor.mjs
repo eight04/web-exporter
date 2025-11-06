@@ -76,7 +76,7 @@ const STEPPER = {
       let match;
       step.reAll.lastIndex = 0;
       while ((match = step.reAll.exec(input)) !== null) {
-        result.push(formatTemplate(step.ret, match));
+        result.push(formatTemplate(step.template, match));
       }
       if (result.length === 0) {
         console.warn(`Pattern not matched: ${step.reAll.toString()}`);
@@ -86,7 +86,7 @@ const STEPPER = {
       if (!match) {
         throw new Error(`Pattern not matched: ${step.re.toString()}`);
       }
-      result = formatTemplate(step.ret, match);
+      result = formatTemplate(step.template, match);
     }
     return result
   },

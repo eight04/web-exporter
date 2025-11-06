@@ -15,7 +15,7 @@ extractors:
         type: text
       - use: re
         pattern: 'var GLOBAL=([^\n]+);?\n'
-        ret: $1
+        template: $1
       - use: json_parse
         unwrap_new_date: true
       - use: json_get
@@ -31,7 +31,7 @@ extractors:
         type: text
       - use: re
         pattern: 'PINNED_PLURK = ([^\n]+);\n'
-        ret: $1
+        template: $1
       - use: json_parse
         unwrap_new_date: true
       - use: store
@@ -45,7 +45,7 @@ extractors:
         type: text
       - use: re
         pattern: 'PUBLIC_PLURKS = ([^\n]+);\n'
-        ret: $1
+        template: $1
       - use: json_parse
         unwrap_new_date: true
       - use: store
