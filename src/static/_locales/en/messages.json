@@ -87,11 +87,11 @@
       }
     }
   },
-  "sidebarBtnStartRecord": {
+  "sidebarBtnStartRecording": {
     "message": "Start Recording",
     "description": "Button text to start recording."
   },
-  "sidebarBtnStopRecord": {
+  "sidebarBtnStopRecording": {
     "message": "Stop Recording",
     "description": "Button text to stop recording."
   },
@@ -102,5 +102,13 @@
   "sidebarBtnDeleteDB": {
     "message": "Delete Database",
     "description": "Button text to delete recorded data."
+  },
+  "extractorStarted": {
+    "message": "Extractor started",
+    "description": "Message shown when the data extractor starts."
+  },
+  "extractorStopped": {
+    "message": "Extractor stopped",
+    "description": "Message shown when the data extractor stops."
   }
 }

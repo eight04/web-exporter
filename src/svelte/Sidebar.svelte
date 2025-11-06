@@ -46,7 +46,7 @@ async function exportMedia() {
   }
   const text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
   await navigator.clipboard.writeText(text);
-  alert(_("exportCopied", { count: tasks.length }));
+  alert(_("exportCopied", [ tasks.length ]));
 }
 
 function deleteDB() {

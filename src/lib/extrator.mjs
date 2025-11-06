@@ -1,6 +1,8 @@
 import browser from "webextension-polyfill";
 
 import {stepExecutor} from "./step-executor.mjs";
+import logger from "./logger.mjs";
+import {_} from "./i18n.mjs";
 
 export const extractor = new Extractor;
 
@@ -15,12 +17,14 @@ class Extractor {
     if (!this.running) {
       this.running = true;
       this.addListener();
+      logger.log(_("extractorStarted"));
     }
   }
   stop() {
     if (this.running) {
       this.running = false;
       this.removeListener();
+      logger.log(_("extractorStopped"));
     }
   }
   onBeforeRequest(details) {
