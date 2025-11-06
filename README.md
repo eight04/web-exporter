@@ -13,6 +13,8 @@ Currently it only supports plurk.com.
 Add a site
 ----------
 
+Check `src/sites/*.yml` for examples.
+
 ```yml
 id: <site_id> # required, unique site id
 
@@ -132,6 +134,12 @@ Download input URLs.
   - `filename`: the name of the file extracted from the URL.
 
 `input` - *required*, the field in the data context that contains the URL to download. The value of the field can be string or array of strings.
+
+Todos
+-----
+
+* Add `spiders` to click links or scroll pages automatically to load more data?
+* Add XHR, fetch mock so the extension can work on Chrome?
 
 Changelog
 ---------
