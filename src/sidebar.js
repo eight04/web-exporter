@@ -1,6 +1,5 @@
-// import browser from "webextension-polyfill";
+import {mount} from "svelte"
 
-import {translateDOM} from "./lib/i18n.js";
+import Sidebar from "./svelte/Sidebar.svelte";
 
-translateDOM(document.body);
-
+mount(Sidebar, {target: document.body});

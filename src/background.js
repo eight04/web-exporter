@@ -33,6 +33,12 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
 			return notifyError(message.error);
     // case "openDialog":
     //   return createDialog(message);
+    case "startRecording":
+      return extractor.start();
+    case "stopRecording":
+      return extractor.stop();
+    case "isRecording":
+      return Promise.resolve(extractor.running);
 	}
 }));
 

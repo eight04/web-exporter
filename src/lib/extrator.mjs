@@ -6,25 +6,25 @@ export const extractor = new Extractor;
 
 class Extractor {
   constructor() {
-    this.watchingTabs = new Set();
+    this.running = false;
     this.rules = [];
 
     this.onBeforeRequest = this.onBeforeRequest.bind(this);
   }
-  watchTab(tabId) {
-    if (!this.watchingTabs.size) {
+  start() {
+    if (!this.running) {
+      this.running = true;
       this.addListener();
     }
-    this.watchingTabs.add(tabId);
   }
-  unwatchTab(tabId) {
-    this.watchingTabs.delete(tabId);
-    if (!this.watchingTabs.size) {
+  stop() {
+    if (this.running) {
+      this.running = false;
       this.removeListener();
     }
   }
   onBeforeRequest(details) {
-    if (!this.watchingTabs.has(details.tabId)) {
+    if (!this.running) {
       return;
     }
     const matches = [];
@@ -62,6 +62,7 @@ class Extractor {
   }
   addListener() {
     // FIXME: should we add event listener for each tab?
+    // how to implement the UI?
     browser.webRequest.onBeforeRequest.addListener(
       this.onBeforeRequest,
       {

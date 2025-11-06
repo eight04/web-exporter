@@ -1,6 +1,7 @@
 import Dexie from "dexie/dist/modern/dexie.mjs";
 
 import sites from "../sites/index.mjs";
+import logger from "./logger.mjs";
 
 const CONNECTED_STORES = {};
 
@@ -10,16 +11,42 @@ class Store {
     const site = sites[site_id];
     const lastDb = site.db[site.db.length - 1];
     this.db.version(lastDb.version).stores(lastDb.schema);
+    this.site = site;
   }
   async put({extractor_id, key, value}) {
+    const primKey = this.db[key].schema.primKey.name; // TODO: this won't work with compound primary key
+    const mid = logger.log(`Storing item to ${key} (ID: ${value[primKey]})...`);
+
     value.extractor_id = extractor_id;
-    await this.db[key].put(value);
+    try {
+      await this.db[key].add(value);
+      logger.extend(mid, `Done.`);
+    } catch (e) {
+      logger.log(`Add item to ${key} failed: ${e.message}`);
+    }
   }
   async putMany({extractor_id, key, value}) {
+    const primKey = this.db[key].schema.primKey.name; // TODO: this won't work with compound primary key
+    const addedIds = value.map(v => {
+      return v[primKey];
+    });
+    const mid = logger.log(`Storing ${value.length} items to ${key} (IDs: ${addedIds.join(", ")})...`);
     value.forEach(v => {
       v.extractor_id = extractor_id;
     });
-    await this.db[key].bulkPut(value);
+    // https://dexie.org/docs/DexieErrors/Dexie.BulkError
+    try {
+      await this.db[key].bulkAdd(value);
+      logger.extend(mid, `Done.`);
+    } catch (e) {
+      if (e.name === "BulkError") {
+        e.failures.forEach(failure => {
+          logger.log(`Bulk add failed: ${failure.message}`);
+        });
+      } else {
+        throw e;
+      }
+    }
   }
 }
 

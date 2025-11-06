@@ -57,6 +57,7 @@
   "private": true,
   "dependencies": {
     "@eight04/idb-storage": "^0.4.2",
-    "dexie": "^4.2.1"
+    "dexie": "^4.2.1",
+    "svelte": "^5.43.2"
   }
 }
