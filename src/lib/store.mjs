@@ -15,14 +15,14 @@ class Store {
   }
   async put({extractor_id, key, value}) {
     const primKey = this.db[key].schema.primKey.name; // TODO: this won't work with compound primary key
-    const mid = logger.log(`Storing item to ${key} (ID: ${value[primKey]})...`);
+    logger.log(`Storing item to ${key} (ID: ${value[primKey]})...`);
 
     value.extractor_id = extractor_id;
     try {
       await this.db[key].add(value);
-      logger.extend(mid, `Done.`);
+      logger.log(`Done.`);
     } catch (e) {
-      logger.log(`Add item to ${key} failed: ${e.message}`);
+      logger.log(`Add to ${key} failed: ${e.message}`);
     }
   }
   async putMany({extractor_id, key, value}) {
@@ -30,23 +30,27 @@ class Store {
     const addedIds = value.map(v => {
       return v[primKey];
     });
-    const mid = logger.log(`Storing ${value.length} items to ${key} (IDs: ${addedIds.join(", ")})...`);
+    logger.log(`Storing ${value.length} items to ${key} (IDs: ${addedIds.join(", ")})...`);
     value.forEach(v => {
       v.extractor_id = extractor_id;
     });
     // https://dexie.org/docs/DexieErrors/Dexie.BulkError
     try {
       await this.db[key].bulkAdd(value);
-      logger.extend(mid, `Done.`);
+      logger.log(`Done.`);
     } catch (e) {
       if (e.name === "BulkError") {
-        e.failures.forEach(failure => {
-          logger.log(`Bulk add failed: ${failure.message}`);
-        });
+        logger.log(`Bulk add failed: ${e.failures.length} failures.`);
       } else {
         throw e;
       }
     }
+  }
+  async getAll({key}) {
+    logger.log(`Getting all items from ${key}...`);
+    const items = await this.db[key].toArray();
+    logger.log(`Got ${items.length} items.`);
+    return items;
   }
 }
 
@@ -64,3 +68,4 @@ export function disconnectAllStores() {
     delete CONNECTED_STORES[key];
   }
 }
+

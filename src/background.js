@@ -2,6 +2,7 @@
 import browser from "webextension-polyfill";
 
 import {extractor} from "./lib/extrator.mjs";
+import {exportMediaURL} from "./lib/store.mjs";
 import sites from "./sites/index.mjs";
 
 // this is used to log error raised by onMessage handler,
@@ -39,6 +40,10 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
       return extractor.stop();
     case "isRecording":
       return Promise.resolve(extractor.running);
+    case "deleteDatabase":
+      return // TODO
+    case "prepareExportMediaURL":
+      return exportMediaURL();
 	}
 }));
 
@@ -55,10 +60,6 @@ for (const site of Object.values(sites)) {
     });
   }
 }
-
-browser.tabs.onRemoved.addListener((tabId) => {
-  extractor.unwatchTab(tabId);
-});
 
 function notifyError(err) {
   console.error(err);

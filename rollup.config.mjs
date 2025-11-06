@@ -1,3 +1,5 @@
+// import * as path from "path";
+
 import cjs from "rollup-plugin-cjs-es";
 import resolve from "@rollup/plugin-node-resolve";
 import {copy} from '@web/rollup-plugin-copy';
@@ -6,11 +8,14 @@ import terser from "@rollup/plugin-terser";
 import output from "rollup-plugin-write-output";
 import json from "@rollup/plugin-json";
 import yaml from "@rollup/plugin-yaml";
+import svelte from "rollup-plugin-svelte";
 
 import glob from "tiny-glob";
 
+const input = await glob("src/*.js");
+
 export default async () => ({
-  input: await glob("src/*.js"),
+  input,
   output: {
     format: "es",
     dir: "build",
@@ -18,9 +23,13 @@ export default async () => ({
   },
   plugins: [
     resolve({
-      // exportConditions: [
-      //   'node'
-      // ]
+      exportConditions: [
+        'browser', 'node'
+      ]
+    }),
+    svelte({
+      include: "src/**/*.svelte",
+      emitCss: false
     }),
     json(),
     yaml(),
@@ -53,7 +62,7 @@ export default async () => ({
         }
       },
       {
-        test: /(\w+)\.js$/,
+        test: /(sidebar)\.js$/,
         target: "build/$1.html",
         handle: (content, {htmlScripts}) => {
           return content.replace("</body>", `${htmlScripts}\n</body>`);

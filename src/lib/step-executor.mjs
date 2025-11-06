@@ -1,4 +1,5 @@
 import {getStore} from "./store.mjs";
+import logger from "./logger.mjs";
 
 const RESPONSE_TYPE = {
   text: (ctx) => {
@@ -16,6 +17,10 @@ const RESPONSE_TYPE = {
     }
     ctx.response.json = JSON.parse(ctx.response.text);
   }
+}
+
+const DEFAULT_RX = {
+  RX_MEDIA_URL: /https?:\/\/[^\s"'<>]+?\.(?:mp4|webm|ogg|mp3|wav|flac|m4a|)(?:\?[^\s"'<>]*)?/gi,
 }
 
 const STEPPER = {
@@ -83,12 +88,58 @@ const STEPPER = {
       key: step.key,
       value: input
     });
+  },
+  table_join: async (ctx, step, input) => {
+    const store = getStore(ctx.site_id);
+    const tableData = await store.getAll({key: step.table});
+    const map = new Map;
+    for (const row of tableData) {
+      map.set(row[step.right_key], row);
+    }
+    const result = [];
+    for (const row of input) {
+      const rightRow = map.get(row[step.left_key]);
+      if (rightRow) {
+        const o = {...row};
+        for (const key in step.fields) {
+          const rightField = step.fields[key];
+          o[key] = rightRow[rightField];
+        }
+        result.push(o);
+      } else {
+        logger.log(`No matching row found in table '${step.table}' for key '${row[step.left_key]}'`);
+      }
+    }
+    return result;
+  },
+  for_each: async (ctx, step, input) => {
+    const result = [];
+    for (const item of input) {
+      const value = await stepExecutor({...ctx, steps: step.steps}, item);
+      result.push(value);
+    }
+    return result;
+  },
+  date: (ctx, step, input) => {
+    const date = new Date(input);
+    return date;
   }
 }
 
-export async function stepExecutor(ctx, value = null) {
+export async function stepExecutor(ctx, model = null) {
   for (const step of ctx.steps) {
-    value = await STEPPER[step.use](ctx, step, value);
+    let input;
+    if ("input" in step) {
+      input = model[step.input];
+    } else {
+      input = model;
+    }
+    const output = await STEPPER[step.use](ctx, step, input);
+    if ("output" in step) {
+      model[step.output] = output;
+    } else {
+      model = output;
+    }
   }
-  return value;
+  return model;
 }

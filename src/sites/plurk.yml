@@ -74,8 +74,57 @@ extractors:
         key: responses
         method: putMany
 
-markers:
+exporters:
   plurks:
-    detect_media: content_raw
+    steps:
+      - use: store
+        key: plurks
+        method: getAll
+      - use: table_join
+        table: users
+        left_key: user_id
+        right_key: id
+        fields:
+          nick_name: nick_name
+          display_name: display_name
+      - use: for_each
+        steps:
+          - use: date
+            input: posted
+            output: posted_date
+          - use: re
+            input: content_raw
+            pattern: RX_MEDIA_URL
+            all: true
+            output: media_urls
+          - use: download
+            input: media_urls
+            default_ext: jpg
+            filename: '{plurk_id}_{nick_name}_{index}_{posted_date:%y%m%d}.{ext}'
   responses:
-    detect_media: content_raw
+    steps:
+      - use: store
+        key: responses
+        method: getAll
+      - use: table_join
+        table: users
+        left_key: user_id
+        right_key: id
+        fields:
+          nick_name: nick_name
+          display_name: display_name
+      - use: for_each
+        steps:
+          - use: date
+            input: posted
+            output: posted_date
+          - use: re
+            input: content_raw
+            pattern: RX_MEDIA_URL
+            all: true
+            output: media_urls
+          - use: download
+            input: media_urls
+            default_ext: jpg
+            filename: '{plurk_id}_r_{id}_{nick_name}_{index}_{posted_date:%y%m%d}.{ext}'
+
