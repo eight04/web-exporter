@@ -3,6 +3,7 @@ import browser from "webextension-polyfill";
 
 import {extractor} from "./lib/extrator.mjs";
 import sites from "./sites/index.mjs";
+import {deleteAllDatabases} from "./lib/store.mjs";
 import {stepExecutor} from "./lib/step-executor.mjs";
 import downloader from "./lib/downloader.mjs";
 
@@ -42,7 +43,7 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
     case "isRecording":
       return Promise.resolve(extractor.running);
     case "deleteDatabase":
-      return // TODO
+      return deleteAllDatabases();
     case "exportMedia":
       return exportMedia();
 	}

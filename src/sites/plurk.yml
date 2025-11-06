@@ -74,6 +74,17 @@ extractors:
         key: responses
         method: putMany
 
+  api_responses_users:
+    url: https://www.plurk.com/v2/plurk/:plurk_id/responses/seen
+    steps:
+      - use: response
+        type: json
+      - use: json_get
+        path: users
+      - use: store
+        key: users
+        method: putMany
+
 exporters:
   plurks:
     steps:

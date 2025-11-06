@@ -47,9 +47,9 @@ class Store {
     }
   }
   async getAll({key}) {
-    logger.log(`Getting all items from ${key}...`);
+    // logger.log(`Getting all items from ${key}...`);
     const items = await this.db[key].toArray();
-    logger.log(`Got ${items.length} items.`);
+    // logger.log(`Got ${items.length} items.`);
     return items;
   }
 }
@@ -69,3 +69,12 @@ export function disconnectAllStores() {
   }
 }
 
+export async function deleteAllDatabases() {
+  await disconnectAllStores();
+  const siteIds = Object.keys(sites);
+  for (const siteId of siteIds) {
+    logger.log(`Deleting database for site ${siteId}...`);
+    await Dexie.delete(`web_exporter/sites/${siteId}`);
+    logger.log(`Deleted database for site ${siteId}.`);
+  }
+}

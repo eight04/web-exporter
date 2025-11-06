@@ -44,7 +44,8 @@ async function exportMedia() {
     return;
   }
   const text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
-  prompt("Copy the media URLs below:", text);
+  await navigator.clipboard.writeText(text);
+  alert(`Copied ${tasks.length} media URLs to clipboard.`);
 }
 
 function deleteDB() {
@@ -82,8 +83,8 @@ async function disableButton(button, action) {
       Delete database
     </button>
   </div>
-  <span>
-    Logs:
+  <span class="logger-head">
+    Logs
   </span>
   <ul class="logger" bind:this={logger}>
     {#each logs as log (log.id)}
@@ -99,11 +100,22 @@ async function disableButton(button, action) {
   height: 100vh;
   overflow: hidden;
 }
+.actions {
+  text-align: center;
+  button {
+    margin: 5px;
+  }
+}
+.logger-head {
+  text-align: center;
+  display: none;
+}
 .logger {
   overflow: auto;
-  padding: 0;
-  margin: 0;
+  padding: 5px;
+  margin: 5px;
   list-style: none;
   white-space: nowrap;
+  background-color: var(--c-bg-l2);
 }
 </style>
