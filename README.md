@@ -146,6 +146,10 @@ Todos
 Changelog
 ---------
 
+* 0.1.1 (Nov 8, 2025)
+
+  - Fix: add URLPattern polyfill for Firefox.
+
 * 0.1.0 (Nov 7, 2025)
 
   - First release.
