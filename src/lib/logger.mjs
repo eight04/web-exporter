@@ -16,7 +16,8 @@ function createLogger() {
 
   return {
     log,
-    extend
+    extend,
+    error
   };
 
   function log(message) {
@@ -24,6 +25,15 @@ function createLogger() {
     console.log(`[${id}] ${message}`);
     for (const port of ports) {
       port.postMessage({id, message});
+    }
+    return id;
+  }
+
+  function error(e) {
+    const id = ++INC;
+    console.error(`[${id}]`, e);
+    for (const port of ports) {
+      port.postMessage({id, message: e.toString(), error: true});
     }
     return id;
   }

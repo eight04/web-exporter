@@ -39,7 +39,13 @@ async function startExport() {
 }
 
 async function exportMedia() {
-  const tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportMedia" }));
+  let tasks;
+  try {
+    tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportMedia" }));
+  } catch (e) {
+    alert(e.message || String(e));
+    return;
+  }
   if (tasks.length === 0) {
     alert(_("exportNoData"));
     return;

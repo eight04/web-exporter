@@ -14,17 +14,17 @@ class Store {
     this.db.version(lastDb.version).stores(lastDb.schema);
     this.site = site;
   }
-  async put({extractor_id, key, value}) {
-    return await this.putMany({extractor_id, key, value: [value]});
+  async put({extractor_id, table, value}) {
+    return await this.putMany({extractor_id, table, value: [value]});
   }
-  async putMany({extractor_id, key, value}) {
-    logger.log(_("storePutMany", [value.length, key]));
+  async putMany({extractor_id, table, value}) {
+    logger.log(_("storePutMany", [value.length, table]));
     value.forEach(v => {
       v.extractor_id = extractor_id;
     });
     // https://dexie.org/docs/DexieErrors/Dexie.BulkError
     try {
-      await this.db[key].bulkAdd(value);
+      await this.db[table].bulkAdd(value);
       logger.log(_("storePutManySuccess"));
     } catch (e) {
       if (e.name === "BulkError") {
@@ -34,10 +34,8 @@ class Store {
       }
     }
   }
-  async getAll({key}) {
-    // logger.log(`Getting all items from ${key}...`);
-    const items = await this.db[key].toArray();
-    // logger.log(`Got ${items.length} items.`);
+  async getAll({table}) {
+    const items = await this.db[table].toArray();
     return items;
   }
 }
@@ -58,6 +56,7 @@ export function disconnectAllStores() {
 }
 
 export async function deleteAllDatabases() {
+  // FIXME: I can still see the database after Dexie.delete() is called? Though the data is gone.
   await disconnectAllStores();
   const siteIds = Object.keys(sites);
   for (const siteId of siteIds) {

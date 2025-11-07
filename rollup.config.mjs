@@ -41,7 +41,7 @@ export default async () => ({
       rootDir: "src/static"
     }),
     iife(),
-    terser({
+    !process.env.ROLLUP_WATCH && terser({
       module: false
     }),
     output([

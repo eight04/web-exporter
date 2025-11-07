@@ -21,7 +21,7 @@ extractors:
       - use: json_get
         path: page_user
       - use: store
-        key: users
+        table: users
         method: put
 
   main_page_pinned_plurks:
@@ -35,7 +35,7 @@ extractors:
       - use: json_parse
         unwrap_new_date: true
       - use: store
-        key: plurks
+        table: plurks
         method: putMany
 
   main_page_plurks:
@@ -49,7 +49,7 @@ extractors:
       - use: json_parse
         unwrap_new_date: true
       - use: store
-        key: plurks
+        table: plurks
         method: putMany
 
   api_get_plurks:
@@ -60,7 +60,7 @@ extractors:
       - use: json_get
         path: plurks
       - use: store
-        key: plurks
+        table: plurks
         method: putMany
 
   api_responses:
@@ -71,7 +71,7 @@ extractors:
       - use: json_get
         path: responses
       - use: store
-        key: responses
+        table: responses
         method: putMany
 
   api_responses_users:
@@ -82,14 +82,44 @@ extractors:
       - use: json_get
         path: users
       - use: store
-        key: users
+        table: users
         method: putMany
+
+  plurk_page_user:
+    url: https://www.plurk.com/p/:plurk_id
+    steps:
+      - use: response
+        type: text
+      - use: re
+        pattern: 'var GLOBAL=([^\n]+);?\n'
+        template: $1
+      - use: json_parse
+        unwrap_new_date: true
+      - use: json_get
+        path: page_user
+      - use: store
+        table: users
+        method: put
+
+  plurk_page_plurk:
+    url: https://www.plurk.com/p/:plurk_id
+    steps:
+      - use: response
+        type: text
+      - use: re
+        pattern: 'plurk = ([^\n]+);\n'
+        template: $1
+      - use: json_parse
+        unwrap_new_date: true
+      - use: store
+        table: plurks
+        method: put
 
 exporters:
   plurks:
     steps:
       - use: store
-        key: plurks
+        table: plurks
         method: getAll
       - use: table_join
         table: users
@@ -120,7 +150,7 @@ exporters:
   responses:
     steps:
       - use: store
-        key: responses
+        table: responses
         method: getAll
       - use: table_join
         table: users

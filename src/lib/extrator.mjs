@@ -4,8 +4,6 @@ import {stepExecutor} from "./step-executor.mjs";
 import logger from "./logger.mjs";
 import {_} from "./i18n.mjs";
 
-export const extractor = new Extractor;
-
 class Extractor {
   constructor() {
     this.running = false;
@@ -57,7 +55,11 @@ class Extractor {
       };
       for (const {rule, match} of matches) {
         Object.assign(ctx, {...rule, match});
-        await stepExecutor(ctx);
+        try {
+          await stepExecutor(ctx);
+        } catch (e) {
+          logger.error(e);
+        }
       }
     }
   }
@@ -88,3 +90,6 @@ class Extractor {
     this.rules.push(rule);
   }
 }
+
+export const extractor = new Extractor;
+

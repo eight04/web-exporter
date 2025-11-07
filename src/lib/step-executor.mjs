@@ -115,13 +115,13 @@ const STEPPER = {
     const store = getStore(ctx.site_id)
     return await store[step.method]({
       extractor_id: ctx.extractor_id,
-      key: step.key,
-      value: input
+      value: input,
+      ...step
     });
   },
   table_join: async (ctx, step, input) => {
     const store = getStore(ctx.site_id);
-    const tableData = await store.getAll({key: step.table});
+    const tableData = await store.getAll({table: step.table});
     const map = new Map;
     for (const row of tableData) {
       map.set(row[step.right_key], row);

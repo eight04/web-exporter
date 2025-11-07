@@ -3,9 +3,9 @@ web-exporter
 
 ![Github Build](https://github.com/eight04/web-exporter/workflows/.github/workflows/build.yml/badge.svg)
 
-A webextension inspired by twitter-web-exporter. It allows you to export data, media from different websites.
+A webextension inspired by twitter-web-exporter. It allows you to export data, media from websites.
 
-* Use webRequest API for better compatibility. Therefore it doesn't support Chrome.
+* Use webRequest API so it is more reliable. But it doesn't support Chrome (yet).
 * Modular design, easy to extend.
 
 Currently it only supports plurk.com.
@@ -45,9 +45,9 @@ exporter:
 Steps
 -----
 
-Extractor and exporter are composed by multiple steps.
+Both extractors and exporters are composed of multiple steps.
 
-Each step that transforms data can have an optional `input` and `output` field to control data flow. By default all steps operates on the same data context. If specified, the step will use the specified field from the data context as its input, and write its output to the specified field in the data context:
+Each step that transforms data can have an optional `input` and `output` field to control data flow. By default, the output of the previous step is used as input, and the output of the current step is passed to the next step. If `input` is specified, the field in the data context will be used as input instead. If `output` is specified, the output of the current step will be stored in that field in the data context.
 
 ### response
 
@@ -83,8 +83,9 @@ Get a field from the input JSON object.
 
 Store the input data to the database, or fetch data from the database as the output. This should be the last step in an extractor, or the first step in an exporter.
 
-`key` - required, the database table name to store the data.
-`method` - required, the storage method. Can be `put`, `putMany`, `getAll`. Currently `put` is implemented as `add` so users will get an error if the key already exists. This should make it easier to avoid duplicates.
+`table` - required, the database table name to store the data.
+
+`method` - required, the storage method. Can be `put`, `putMany`, `getAll`. Currently `put` is implemented as `add` so users will get an error if the key already exists. This should make it easier to spot duplicated entries while recording.
 
 ### table_join
 
