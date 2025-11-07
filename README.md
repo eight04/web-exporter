@@ -141,10 +141,11 @@ Todos
 
 * Add `spiders` to click links or scroll pages automatically to load more data?
 * Add XHR, fetch mock so the extension can work on Chrome?
+* Make yml editable in the extension UI?
 
 Changelog
 ---------
 
-* 0.1.0
+* 0.1.0 (Nov 7, 2025)
 
-    - First release.
+  - First release.
