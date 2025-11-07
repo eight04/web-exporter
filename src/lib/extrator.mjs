@@ -1,4 +1,6 @@
 import browser from "webextension-polyfill";
+// FIXME: https://bugzilla.mozilla.org/show_bug.cgi?id=1998871
+import {URLPattern} from "urlpattern-polyfill";
 
 import {stepExecutor} from "./step-executor.mjs";
 import logger from "./logger.mjs";
@@ -39,6 +41,7 @@ class Extractor {
     if (!matches.length) {
       return;
     }
+    logger.log(_("extractorMatched", [details.url, matches.map(m => m.rule.extractor_id).join(", ")]));
 
     const filter = browser.webRequest.filterResponseData(details.requestId);
     const chunks = [];

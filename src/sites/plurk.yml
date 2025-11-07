@@ -86,7 +86,7 @@ extractors:
         method: putMany
 
   plurk_page_user:
-    url: https://www.plurk.com/p/:plurk_id
+    url: 'https://www.plurk.com/p/:plurk_id((?!getzone)\w+)'
     steps:
       - use: response
         type: text
@@ -102,7 +102,7 @@ extractors:
         method: put
 
   plurk_page_plurk:
-    url: https://www.plurk.com/p/:plurk_id
+    url: 'https://www.plurk.com/p/:plurk_id((?!getzone)\w+)'
     steps:
       - use: response
         type: text

@@ -110,5 +110,19 @@
   "extractorStopped": {
     "message": "Extractor stopped",
     "description": "Message shown when the data extractor stops."
+  },
+  "extractorMatched": {
+    "message": "Use `$EXTRACTORS$` on $URL$",
+    "description": "Message shown when the data extractor matches items.",
+    "placeholders": {
+      "URL": {
+        "content": "$1",
+        "example": "https://twitter.com/someuser"
+      },
+      "EXTRACTORS": {
+        "content": "$2",
+        "example": "user, posts"
+      }
+    }
   }
 }
