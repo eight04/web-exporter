@@ -1,6 +1,6 @@
 {
   "name": "web-exporter",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A webextension to export data, media from websites.",
   "author": "eight04 <eight04@gmail.com>",
   "license": "MIT",
