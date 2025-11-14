@@ -12,6 +12,8 @@ import svelte from "rollup-plugin-svelte";
 
 import glob from "tiny-glob";
 
+const DEV = process.env.ROLLUP_WATCH || process.env.NODE_ENV === "development";
+
 const input = await glob("src/*.js");
 
 export default async () => ({
@@ -41,8 +43,9 @@ export default async () => ({
       rootDir: "src/static"
     }),
     iife(),
-    !process.env.ROLLUP_WATCH && terser({
-      module: false
+    !DEV && terser({
+      module: false,
+      mangle: false, // this should help error reporting for users
     }),
     output([
       {

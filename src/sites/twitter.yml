@@ -107,6 +107,9 @@ exporters:
           screen_name: core.screen_name
           user_name: core.name
       - use: for_each
+        condition:
+          # NOTE: extended_entities is not always present e.g. for text-only tweets
+          extended_entities: NOT_NULL
         steps:
           - use: date
             input: created_at
