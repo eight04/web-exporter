@@ -21,6 +21,10 @@ function createDownloader() {
         if (!ctx.ext) {
           ctx.ext = fileInfo.ext || default_ext || ".jpg";
         }
+        if (ctx.ext.includes(":")) {
+          // Handle cases like ".jpg:large"
+          ctx.ext = ctx.ext.split(":")[0];
+        }
         const finalName = pyformat(filename, ctx);
         tasks.push({url: url.href, filename: finalName});
       }
