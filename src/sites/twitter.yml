@@ -31,6 +31,54 @@ extractors:
                 table: tweets
                 method: put
 
+  user_media:
+    url: https://x.com/i/api/graphql/:graph_query/UserMedia?*
+    steps:
+      - use: response
+        type: json
+      - use: for_each
+        input: data.user.result.timeline.timeline.instructions
+        steps:
+          - use: if
+            condition:
+              type: TimelineAddToModule
+            steps:
+              - use: for_each
+                input: moduleItems
+                steps:
+                  - use: json_get
+                    path: item.itemContent.tweet_results.result
+          - use: elif
+            condition:
+              type: TimelineAddEntries
+            steps:
+              - use: for_each
+                input: entries
+                condition:
+                  content:
+                    entryType: TimelineTimelineModule
+                steps:
+                  - use: for_each
+                    input: content.items
+                    steps:
+                      - use: json_get
+                        path: item.itemContent.tweet_results.result
+          - use: else
+            steps:
+              # cursor, clearCache entries
+              - use: empty_array
+      - use: flat
+      - use: for_each
+        steps:
+          - use: store
+            input: core.user_results.result
+            table: users
+            method: put
+          - use: store
+            input: legacy
+            table: tweets
+            method: put
+
   tweet_result_by_rest:
     url: https://api.x.com/graphql/:graph_query/TweetResultByRestId?*
     steps:

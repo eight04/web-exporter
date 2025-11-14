@@ -179,7 +179,7 @@ const STEPPER = {
   },
   find: (ctx, step, input) => {
     let result = null;
-    let foundValue;
+    let value;
     const cmp = (a, b) => {
       if (step.mode === "min") {
         return a < b;
@@ -188,9 +188,9 @@ const STEPPER = {
       }
     }
     for (const item of input) {
-      const value = jp.get(item, step.key);
-      if (result === null || cmp(value, foundValue)) {
-        foundValue = value;
+      const newValue = jp.get(item, step.key);
+      if (value === undefined || cmp(newValue, value)) {
+        value = newValue;
         result = item;
       }
     }
@@ -225,6 +225,16 @@ const STEPPER = {
       return;
     }
     return await stepExecutor({...ctx, steps: step.steps}, input, model);
+  },
+  flat: (ctx, step, input) => {
+    return input.flat(step.depth ?? Infinity);
+  },
+  debug: (ctx, step, input) => {
+    console.log("DEBUG STEP:", step.message || "", input);
+    logger.log(`DEBUG: ${step.message || ""}`);
+  },
+  empty_array: () => {
+    return [];
   }
 }
 
@@ -271,6 +281,9 @@ function compileConditionObj(conditionObj) {
 function compileCondition(condition) {
   if (typeof condition === "string") {
     return compileConditionStr(condition);
+  }
+  if (Array.isArray(condition)) {
+    throw new Error("Array condition is not supported");
   }
   return compileConditionObj(condition);
 }
