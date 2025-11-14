@@ -140,7 +140,7 @@ exporters:
             output: media_urls
           - use: filter
             input: media_urls
-            condition: IMAGE
+            condition: IS_IMAGE
             output: media_urls
           - use: download
             input: media_urls
@@ -171,7 +171,7 @@ exporters:
             output: media_urls
           - use: filter
             input: media_urls
-            condition: IMAGE
+            condition: IS_IMAGE
             output: media_urls
           - use: download
             input: media_urls

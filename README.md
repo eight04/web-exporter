@@ -49,6 +49,8 @@ Both extractors and exporters are composed of multiple steps.
 
 Each step that transforms data can have an optional `input` and `output` field to control data flow. By default, the output of the previous step is used as input, and the output of the current step is passed to the next step. If `input` is specified, the field in the data context will be used as input instead. If `output` is specified, the output of the current step will be stored in that field in the data context.
 
+When specifying a JSON path, you can use dot notation and array indices. For example, `posts[0].user.name` refers to the `name` field of the `user` object in the first item of the `posts` array.
+
 ### response
 
 Extract the raw response from the webRequest. This only works in an extractor.
@@ -109,9 +111,41 @@ Join multiple tables from the database into a single array of objects. For examp
 
 `fields` - required, a mapping of new field names to field names in the joined table.
 
+### if
+
+Conditionally execute steps based on a condition.
+
+`condition` - required. It can be string or an object.
+
+```ts
+type Condition =
+  | string // the name of a builtin condition function. If not found, it will be treated as a regular expression to match the input data.
+  | {
+      [key: string]: Condition; // each key must statisfy the corresponding condition
+    }
+```
+
+`steps` - required, an array of steps to execute if the condition is true.
+
+### elif
+
+Similar to `if`, but used after an `if` or another `elif` step. The steps will be executed only if the previous `if`/`elif` conditions are false, and the current condition is true.
+
+`condition` - required. See `if` step for details.
+
+`steps` - required, an array of steps to execute if the condition is true.
+
+### else
+
+Used after an `if` or `elif` step. The steps will be executed only if all previous conditions are false.
+
+`steps` - required, an array of steps to execute.
+
 ### for_each
 
 Iterate over each item in the input array, and execute a list of steps for each item as data.
+
+`condition` - optional. See `if` step for details. The condition is evaluated for each item, and the steps are only executed if the condition is true.
 
 `steps` - required, an array of steps to execute for each item.
 
@@ -123,7 +157,7 @@ Convert the input data to a date object. Usually used with `input`, `output` to 
 
 Filter the input array by a condition.
 
-`condition` - required, currently you can only specify a regular expression as `RX_<pattern>` to match the string representation of each item.
+`condition` - required. See `if` step for details. The condition is evaluated for each item, and only items that satisfy the condition are kept.
 
 ### download
 
@@ -136,6 +170,14 @@ Download input URLs.
 
 `input` - *required*, the field in the data context that contains the URL to download. The value of the field can be string or array of strings.
 
+### find
+
+Find an item in the input array with the maximum/minimum value of a specified field.
+
+`key` - required, the field name to compare.
+
+`mode` - required, can be `max` or `min`.
+
 Todos
 -----
 
@@ -145,6 +187,17 @@ Todos
 
 Changelog
 ---------
+
+* Next
+  
+  - Fix: cleanup file extension like `.jpg:large` when downloading.
+  - Fix: can't use `$&` in re step template.
+  - Add: now all steps support member and index access with json path.
+  - Add: condition to for_each step.
+  - Add: find step.
+  - Add: if, elif, else steps.
+  - Change: if the step doesn't output anything, the next step won't receive undefined anymore.
+  - Add: twitter.
 
 * 0.1.1 (Nov 8, 2025)
 

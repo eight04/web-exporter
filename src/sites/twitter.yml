@@ -72,8 +72,9 @@ exporters:
                 steps:
                   - use: json_get
                     path: video_info.variants
-                  - use: find_max
+                  - use: find
                     key: bitrate
+                    mode: max
                   - use: json_get
                     path: url
               - use: elif

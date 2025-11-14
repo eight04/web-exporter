@@ -29,6 +29,12 @@ const DEFAULT_RX = {
   URL
 };
 
+const BUILTIN_CONDITIONS = {
+  IS_IMAGE: it => IMAGE.test(it),
+  IS_URL: it => URL.test(it),
+  NOT_NULL: it => it !== null && it !== undefined,
+}
+
 const STEPPER = {
   response: async (ctx, step) => {
     if (!ctx.response) {
@@ -171,20 +177,27 @@ const STEPPER = {
     }
     return await downloader.download(input, {...step, ctx: model});
   },
-  find_max: (ctx, step, input) => {
-    let maxItem = null;
-    let maxValue = -Infinity;
-    for (const item of input) {
-      const value = jp.get(item, step.key);
-      if (value > maxValue) {
-        maxValue = value;
-        maxItem = item;
+  find: (ctx, step, input) => {
+    let result = null;
+    let foundValue;
+    const cmp = (a, b) => {
+      if (step.mode === "min") {
+        return a < b;
+      } else {
+        return a > b;
       }
     }
-    if (!maxItem) {
-      throw new Error("No items found for find_max");
+    for (const item of input) {
+      const value = jp.get(item, step.key);
+      if (result === null || cmp(value, foundValue)) {
+        foundValue = value;
+        result = item;
+      }
     }
-    return maxItem;
+    if (!result) {
+      throw new Error(`No item found for find ${step.mode}`);
+    }
+    return result;
   },
   if: async (ctx, step, input, model) => {
     if (!step.test_fn) {
@@ -263,9 +276,9 @@ function compileCondition(condition) {
 }
 
 function compileConditionStr(conditionStr) {
-  if (conditionStr in DEFAULT_RX) {
-    const re = DEFAULT_RX[conditionStr];
-    return (it) => re.test(it);
+  if (conditionStr in BUILTIN_CONDITIONS) {
+    const fn = BUILTIN_CONDITIONS[conditionStr];
+    return fn;
   }
   const re = new RegExp(conditionStr);
   return (it) => re.test(it);
