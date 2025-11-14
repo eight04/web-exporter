@@ -233,8 +233,8 @@ const STEPPER = {
     console.log("DEBUG STEP:", step.message || "", input);
     logger.log(`DEBUG: ${step.message || ""}`);
   },
-  empty_array: () => {
-    return [];
+  const: (ctx, step) => {
+    return step.value;
   }
 }
 

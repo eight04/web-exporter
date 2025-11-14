@@ -178,6 +178,24 @@ Find an item in the input array with the maximum/minimum value of a specified fi
 
 `mode` - required, can be `max` or `min`.
 
+### flat
+
+Flatten the input array of arrays into a single array.
+
+`depth` - optional, the depth to flatten. Default is infinity.
+
+### debug
+
+Log the input data to the console for debugging purposes.
+
+`message` - optional, a message to display.
+
+### const
+
+Set a constant value as output.
+
+`value` - required, the constant value.
+
 Todos
 -----
 
@@ -196,8 +214,12 @@ Changelog
   - Add: condition to for_each step.
   - Add: find step.
   - Add: if, elif, else steps.
+  - Add: flat step.
+  - Add: debug step.
+  - Add: const step.
   - Change: if the step doesn't output anything, the next step won't receive undefined anymore.
   - Add: twitter.
+  - Change: changed how condition works. Rename builtin conditions. Now regex condition don't start with RX_ anymore.
 
 * 0.1.1 (Nov 8, 2025)
 

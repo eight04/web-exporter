@@ -66,7 +66,8 @@ extractors:
           - use: else
             steps:
               # cursor, clearCache entries
-              - use: empty_array
+              - use: const
+                value: []
       - use: flat
       - use: for_each
         steps:
