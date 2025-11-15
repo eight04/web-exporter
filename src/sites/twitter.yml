@@ -1,0 +1,147 @@
+id: twitter
+
+db:
+  - version: 1
+    schema:
+      users: rest_id
+      tweets: id_str, user_id_str
+
+extractors:
+  tweet_detail:
+    url: https://x.com/i/api/graphql/:graph_query/TweetDetail?*
+    steps:
+      - use: response
+        type: json
+      - use: for_each
+        input: data.threaded_conversation_with_injections_v2.instructions
+        condition: 
+          type: TimelineAddEntries
+        steps:
+          - use: for_each
+            input: entries
+            condition:
+              entryId: '^tweet-\d+'
+            steps:
+              - use: store
+                input: content.itemContent.tweet_results.result.core.user_results.result
+                table: users
+                method: put
+              - use: store
+                input: content.itemContent.tweet_results.result.legacy
+                table: tweets
+                method: put
+
+  user_media:
+    url: https://x.com/i/api/graphql/:graph_query/UserMedia?*
+    steps:
+      - use: response
+        type: json
+      - use: for_each
+        input: data.user.result.timeline.timeline.instructions
+        steps:
+          - use: if
+            condition:
+              type: TimelineAddToModule
+            steps:
+              - use: for_each
+                input: moduleItems
+                steps:
+                  - use: json_get
+                    path: item.itemContent.tweet_results.result
+          - use: elif
+            condition:
+              type: TimelineAddEntries
+            steps:
+              - use: for_each
+                input: entries
+                condition:
+                  content:
+                    entryType: TimelineTimelineModule
+                steps:
+                  - use: for_each
+                    input: content.items
+                    steps:
+                      - use: json_get
+                        path: item.itemContent.tweet_results.result
+          - use: else
+            steps:
+              # cursor, clearCache entries
+              - use: const
+                value: []
+      - use: flat
+      - use: for_each
+        steps:
+          - use: store
+            input: core.user_results.result
+            table: users
+            method: put
+          - use: store
+            input: legacy
+            table: tweets
+            method: put
+
+  tweet_result_by_rest:
+    url: https://api.x.com/graphql/:graph_query/TweetResultByRestId?*
+    steps:
+      - use: response
+        type: json
+      - use: store
+        input: data.tweetResult.result.core.user_results.result
+        table: users
+        method: put
+      - use: store
+        input: data.tweetResult.result.legacy
+        table: tweets
+        method: put
+
+exporters:
+  tweets:
+    steps:
+      - use: store
+        table: tweets
+        method: getAll
+      - use: table_join
+        table: users
+        left_key: user_id_str
+        right_key: rest_id
+        fields:
+          screen_name: core.screen_name
+          user_name: core.name
+      - use: for_each
+        condition:
+          # NOTE: extended_entities is not always present e.g. for text-only tweets
+          extended_entities: NOT_NULL
+        steps:
+          - use: date
+            input: created_at
+            output: created_at_date
+          - use: for_each
+            input: extended_entities.media
+            steps:
+              - use: if
+                condition:
+                  # NOTE: video and animated_gif share the same structure
+                  video_info: NOT_NULL
+                steps:
+                  - use: json_get
+                    path: video_info.variants
+                  - use: find
+                    key: bitrate
+                    mode: max
+                  - use: json_get
+                    path: url
+              - use: elif
+                condition:
+                  type: photo
+                steps:
+                  - use: re
+                    input: media_url_https
+                    pattern: '.*'
+                    # FIXME: is orig available always?
+                    template: '$&:orig'
+            output: media_urls
+          - use: download
+            input: media_urls
+            default_ext: jpg
+            filename: '{screen_name}_{id_str}_{index}_{created_at_date:%y%m%d}{ext}'
+

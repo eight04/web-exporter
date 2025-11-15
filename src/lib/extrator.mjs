@@ -31,6 +31,9 @@ class Extractor {
     if (!this.running) {
       return;
     }
+    if (details.method === "OPTIONS") {
+      return;
+    }
     const matches = [];
     for (const rule of this.rules) {
       const match = rule.url.exec(details.url);
