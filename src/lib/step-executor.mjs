@@ -199,16 +199,16 @@ const STEPPER = {
     }
     return result;
   },
-  if: async (ctx, step, input, model) => {
+  if: async (ctx, step, input) => {
     if (!step.test_fn) {
       step.test_fn = compileCondition(step.condition);
     }
     ctx.test_result = step.test_fn(input);
     if (ctx.test_result) {
-      return await stepExecutor({...ctx, steps: step.steps}, input, model);
+      return await stepExecutor({...ctx, steps: step.steps}, input);
     }
   },
-  elif: async (ctx, step, input, model) => {
+  elif: async (ctx, step, input) => {
     if (ctx.test_result) {
       return;
     }
@@ -217,14 +217,14 @@ const STEPPER = {
     }
     ctx.test_result = step.test_fn(input);
     if (ctx.test_result) {
-      return await stepExecutor({...ctx, steps: step.steps}, input, model);
+      return await stepExecutor({...ctx, steps: step.steps}, input);
     }
   },
-  else: async (ctx, step, input, model) => {
+  else: async (ctx, step, input) => {
     if (ctx.test_result) {
       return;
     }
-    return await stepExecutor({...ctx, steps: step.steps}, input, model);
+    return await stepExecutor({...ctx, steps: step.steps}, input);
   },
   flat: (ctx, step, input) => {
     return input.flat(step.depth ?? Infinity);
