@@ -3,10 +3,18 @@ import browser from "webextension-polyfill";
 import {tick} from "svelte";
 import { _ } from "../lib/i18n.mjs";
 
+const MAX_LOGS = 100;
 const logs = $state([]); // { id: number, message: string }[]
 const port = browser.runtime.connect({ name: "logger" });
 let logger;
 let recording = $state(false);
+
+function pushLog(arg) {
+  logs.push(arg);
+  if (logs.length > MAX_LOGS) {
+    logs.shift();
+  }
+}
 
 browser.runtime.sendMessage({ method: "isRecording" }).then((isRecording) => {
   recording = isRecording;
@@ -17,7 +25,7 @@ port.onMessage.addListener((msg) => {
     const log = logs.find(l => l.id === msg.id);
     log.message += msg.message;
   } else {
-    logs.push(msg);
+    pushLog(msg);
     tick().then(() => {
       logger.scroll({ top: logger.scrollHeight, behavior: "smooth" });
     });
@@ -59,7 +67,7 @@ function deleteDB() {
   if (confirm(_("storeDeleteDBConfirm"))) {
     browser.runtime.sendMessage({ method: "deleteDatabase" }).then(() => {
       logs.length = 0;
-      logs.push({ id: Date.now(), message: _("storeDeleteDBSuccess") });
+      pushLog({ id: Date.now(), message: _("storeDeleteDBSuccess") });
     });
   }
 }

@@ -4,6 +4,7 @@ import {getStore} from "./store.mjs";
 import downloader from "./downloader.mjs";
 import logger from "./logger.mjs";
 import {_} from "./i18n.mjs";
+import * as jp from "./json-path.mjs";
 
 const RESPONSE_TYPE = {
   text: (ctx) => {
@@ -27,6 +28,12 @@ const DEFAULT_RX = {
   IMAGE,
   URL
 };
+
+const BUILTIN_CONDITIONS = {
+  IS_IMAGE: it => IMAGE.test(it),
+  IS_URL: it => URL.test(it),
+  NOT_NULL: it => it !== null && it !== undefined,
+}
 
 const STEPPER = {
   response: async (ctx, step) => {
@@ -65,9 +72,12 @@ const STEPPER = {
     let result;
     const formatTemplate = (template, match) => {
       if (!template) return match[0];
-      return template.replace(/\$(\d+|\w+)/g, (m, p1) => {
+      return template.replace(/\$(\d+|\w+|&)/g, (m, p1) => {
         if (match.groups && p1 in match.groups) {
           return match.groups[p1];
+        }
+        if (p1 === "&") {
+          return match[0];
         }
         return match[Number(p1)];
       });
@@ -101,15 +111,7 @@ const STEPPER = {
     return obj;
   },
   json_get: (ctx, step, input) => {
-    const path = step.path.split(".");
-    let current = input;
-    for (const key of path) {
-      if (!(key in current)) {
-        throw new Error(`Key not found in JSON object: ${key}`);
-      }
-      current = current[key];
-    }
-    return current;
+    return jp.get(input, step.path);
   },
   store: async (ctx, step, input) => {
     const store = getStore(ctx.site_id)
@@ -124,16 +126,16 @@ const STEPPER = {
     const tableData = await store.getAll({table: step.table});
     const map = new Map;
     for (const row of tableData) {
-      map.set(row[step.right_key], row);
+      map.set(jp.get(row, step.right_key), row);
     }
     const result = [];
     for (const row of input) {
-      const rightRow = map.get(row[step.left_key]);
+      const rightRow = map.get(jp.get(row, step.left_key));
       if (rightRow) {
         const o = {...row};
         for (const key in step.fields) {
           const rightField = step.fields[key];
-          o[key] = rightRow[rightField];
+          jp.set(o, key, jp.get(rightRow, rightField));
         }
         result.push(o);
       } else {
@@ -144,7 +146,13 @@ const STEPPER = {
   },
   for_each: async (ctx, step, input) => {
     const result = [];
+    if (!step.test_fn && step.condition) {
+      step.test_fn = compileCondition(step.condition);
+    }
     for (const item of input) {
+      if (step.test_fn && !step.test_fn(item)) {
+        continue;
+      }
       const value = await stepExecutor({...ctx, steps: step.steps}, item);
       result.push(value);
     }
@@ -155,21 +163,11 @@ const STEPPER = {
     return date;
   },
   filter: (ctx, step, input) => {
-    let testFn;
-    if (step.condition.startsWith("RX_")) {
-      const pattern = step.condition.slice(3);
-      let re;
-      if (pattern in DEFAULT_RX) {
-        re = DEFAULT_RX[pattern];
-      } else {
-        re = new RegExp(pattern);
-      }
-      testFn = (it) => re.test(it);
-    } else {
-      throw new Error(`Unknown filter condition: ${step.condition}`);
+    if (!step.test_fn) {
+      step.test_fn = compileCondition(step.condition);
     }
     const result = input.filter(item => {
-      return testFn(item);
+      return step.test_fn(item);
     });
     return result;
   },
@@ -178,6 +176,65 @@ const STEPPER = {
       input = [input];
     }
     return await downloader.download(input, {...step, ctx: model});
+  },
+  find: (ctx, step, input) => {
+    let result = null;
+    let value;
+    const cmp = (a, b) => {
+      if (step.mode === "min") {
+        return a < b;
+      } else {
+        return a > b;
+      }
+    }
+    for (const item of input) {
+      const newValue = jp.get(item, step.key);
+      if (value === undefined || cmp(newValue, value)) {
+        value = newValue;
+        result = item;
+      }
+    }
+    if (!result) {
+      throw new Error(`No item found for find ${step.mode}`);
+    }
+    return result;
+  },
+  if: async (ctx, step, input) => {
+    if (!step.test_fn) {
+      step.test_fn = compileCondition(step.condition);
+    }
+    ctx.test_result = step.test_fn(input);
+    if (ctx.test_result) {
+      return await stepExecutor({...ctx, steps: step.steps}, input);
+    }
+  },
+  elif: async (ctx, step, input) => {
+    if (ctx.test_result) {
+      return;
+    }
+    if (!step.test_fn) {
+      step.test_fn = compileCondition(step.condition);
+    }
+    ctx.test_result = step.test_fn(input);
+    if (ctx.test_result) {
+      return await stepExecutor({...ctx, steps: step.steps}, input);
+    }
+  },
+  else: async (ctx, step, input) => {
+    if (ctx.test_result) {
+      return;
+    }
+    return await stepExecutor({...ctx, steps: step.steps}, input);
+  },
+  flat: (ctx, step, input) => {
+    return input.flat(step.depth ?? Infinity);
+  },
+  debug: (ctx, step, input) => {
+    console.log("DEBUG STEP:", step.message || "", input);
+    logger.log(`DEBUG: ${step.message || ""}`);
+  },
+  const: (ctx, step) => {
+    return step.value;
   }
 }
 
@@ -185,16 +242,57 @@ export async function stepExecutor(ctx, model = null) {
   for (const step of ctx.steps) {
     let input;
     if ("input" in step) {
-      input = model[step.input];
+      input = jp.get(model, step.input);
     } else {
       input = model;
     }
     const output = await STEPPER[step.use](ctx, step, input, model);
-    if ("output" in step) {
-      model[step.output] = output;
-    } else {
-      model = output;
+    if (output) {
+      if ("output" in step) {
+        jp.set(model, step.output, output);
+      } else {
+        model = output;
+      }
     }
   }
   return model;
+}
+
+function compileConditionObj(conditionObj) {
+  const compiled = {};
+  for (const key in conditionObj) {
+    compiled[key] = compileCondition(conditionObj[key]);
+  }
+  return (it) => {
+    for (const key in compiled) {
+      if (!compiled[key](jp.get(it, key))) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/**
+ * Compile a condition which can be a string or an object
+ * @param {string|object} condition 
+ * @returns {function} A function that takes an input and returns a boolean
+ */
+function compileCondition(condition) {
+  if (typeof condition === "string") {
+    return compileConditionStr(condition);
+  }
+  if (Array.isArray(condition)) {
+    throw new Error("Array condition is not supported");
+  }
+  return compileConditionObj(condition);
+}
+
+function compileConditionStr(conditionStr) {
+  if (conditionStr in BUILTIN_CONDITIONS) {
+    const fn = BUILTIN_CONDITIONS[conditionStr];
+    return fn;
+  }
+  const re = new RegExp(conditionStr);
+  return (it) => re.test(it);
 }
