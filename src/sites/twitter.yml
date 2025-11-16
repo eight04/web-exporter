@@ -55,8 +55,7 @@ extractors:
               - use: for_each
                 input: entries
                 condition:
-                  content:
-                    entryType: TimelineTimelineModule
+                  content.entryType: TimelineTimelineModule
                 steps:
                   - use: for_each
                     input: content.items

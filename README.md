@@ -206,20 +206,20 @@ Todos
 Changelog
 ---------
 
-* Next
+* 0.2.0 (Nov 17, 2025)
   
-  - Fix: cleanup file extension like `.jpg:large` when downloading.
-  - Fix: can't use `$&` in re step template.
-  - Add: now all steps support member and index access with json path.
   - Add: condition to for_each step.
-  - Add: find step.
-  - Add: if, elif, else steps.
-  - Add: flat step.
-  - Add: debug step.
   - Add: const step.
-  - Change: if the step doesn't output anything, the next step won't receive undefined anymore.
+  - Add: debug step.
+  - Add: find step.
+  - Add: flat step.
+  - Add: if, elif, else steps.
+  - Add: now all steps support member and index access with json path.
   - Add: twitter.
   - Change: changed how condition works. Rename builtin conditions. Now regex condition don't start with RX_ anymore.
+  - Change: if the step doesn't output anything, the next step won't receive undefined anymore.
+  - Fix: can't use `$&` in re step template.
+  - Fix: cleanup file extension like `.jpg:large` when downloading.
 
 * 0.1.1 (Nov 8, 2025)
 
