@@ -121,7 +121,7 @@ Conditionally execute steps based on a condition.
 type Condition =
   | string // the name of a builtin condition function. If not found, it will be treated as a regular expression to match the input data.
   | {
-      [key: string]: Condition; // each key must statisfy the corresponding condition
+      [key: string]: Condition; // each key must satisfy the corresponding condition
     }
 ```
 
