@@ -265,7 +265,7 @@ function compileConditionObj(conditionObj) {
   }
   return (it) => {
     for (const key in compiled) {
-      if (!compiled[key](it[key])) {
+      if (!compiled[key](jp.get(it, key))) {
         return false;
       }
     }
