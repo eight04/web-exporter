@@ -160,16 +160,16 @@ Filter the input array by a condition.
 
 `condition` - required. See `if` step for details. The condition is evaluated for each item, and only items that satisfy the condition are kept.
 
-### download
+### export
 
-Download input URLs.
+Export input URLs. Usually you want to set a `filename` for media exporters but not for URL exporters.
 
-`filename` - required, a python template string to name the downloaded files. The input data will be used as the context for the template, therefore you should always specify `input` field for URLs when using this step. Besides the fields in the data context, the following special variables are also available:
+`filename` - optional, a python template string to name the file. The input data will be used as the context for the template, therefore you should always specify `input` field for URLs when using this step. Besides the fields in the data context, the following special variables are also available:
   - `index`: the index of the current item in the input array, starting from 0.
   - `ext`: the file extension extracted from the URL.
   - `filename`: the name of the file extracted from the URL.
 
-`input` - *required*, the field in the data context that contains the URL to download. The value of the field can be string or array of strings.
+`input` - *required if filename is set*, the field in the data context that contains the URL to export. The value of the field can be string or array of strings.
 
 ### find
 
