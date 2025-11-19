@@ -133,6 +133,13 @@ async function disableButton(button, action) {
   button {
     margin: 5px;
   }
+  select {
+    display: inline-block;
+    width: auto;
+  }
+  > * {
+    white-space: nowrap;
+  }
 }
 .logger-head {
   text-align: center;
