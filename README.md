@@ -35,6 +35,7 @@ extractor:
 
 exporter:
   [exporter_name]:
+    type: <exporter_type> # required, the type of exporter. Can be `media`, `url`
     steps:         # required, list of steps to export data
       - use: <step_name>
         [param1]: <value1>
@@ -205,6 +206,12 @@ Todos
 
 Changelog
 ---------
+
+* Next
+
+  - Add: export twitter spaces URLs.
+  - Change: rename step `download` to `export`.
+  - Change: add `type` field to exporter.
 
 * 0.2.0 (Nov 17, 2025)
   
