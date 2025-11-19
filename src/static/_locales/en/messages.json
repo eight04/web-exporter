@@ -99,7 +99,7 @@
     "message": "Export Type:",
     "description": "Label for export type selection."
   },
-  "sidebarExportTypeUrls": {
+  "sidebarExportTypeUrl": {
     "message": "URLs",
     "description": "Export type option for URLs."
   },
