@@ -5,7 +5,7 @@ import {extractor} from "./lib/extrator.mjs";
 import sites from "./sites/index.mjs";
 import {deleteAllDatabases} from "./lib/store.mjs";
 import {stepExecutor} from "./lib/step-executor.mjs";
-import downloader from "./lib/downloader.mjs";
+import exporter from "./lib/exporter.mjs";
 
 // this is used to log error raised by onMessage handler,
 // otherwise the stack trace will be removed after passing the error to the content script.
@@ -44,8 +44,8 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
       return Promise.resolve(extractor.running);
     case "deleteDatabase":
       return deleteAllDatabases();
-    case "exportMedia":
-      return exportMedia();
+    case "exportData":
+      return exportData(message);
 	}
 }));
 
@@ -80,14 +80,18 @@ function closeTab({tabId, opener}) {
 	browser.tabs.remove(tabId);
 }
 
-async function exportMedia() {
+async function exportData({type}) {
   for (const [site_id, site] of Object.entries(sites)) {
     for (const exporter of Object.values(site.exporters)) {
-      const ctx = {...exporter, site_id};
+      if (exporter.type !== type) {
+        continue;
+      }
+      const ctx = {...exporter, site_id, exporter_type: type};
       await stepExecutor(ctx);
     }
   }
-  const tasks = downloader.getTasks();
-  downloader.clearTasks();
-  return tasks;
+  const length = exporter.getTasks().length;
+  const text = exporter.output();
+  exporter.clearTasks();
+  return {text, length};
 }

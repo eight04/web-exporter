@@ -8,6 +8,7 @@ const logs = $state([]); // { id: number, message: string }[]
 const port = browser.runtime.connect({ name: "logger" });
 let logger;
 let recording = $state(false);
+let exportType = $state("media");
 
 function pushLog(arg) {
   logs.push(arg);
@@ -41,26 +42,25 @@ function toggleRecording() {
   }
 }
 
-async function startExport() {
-  const currentTab = await browser.tabs.query({ active: true, currentWindow: true });
-  await browser.tabs.create({ url: browser.runtime.getURL("export.html"), openerTabId: currentTab[0].id });
-}
+// async function startExport() {
+//   const currentTab = await browser.tabs.query({ active: true, currentWindow: true });
+//   await browser.tabs.create({ url: browser.runtime.getURL("export.html"), openerTabId: currentTab[0].id });
+// }
 
-async function exportMedia() {
-  let tasks;
+async function exportData() {
+  let result;
   try {
-    tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportMedia" }));
+    result = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportData", type: exportType }) );
   } catch (e) {
     alert(e.message || String(e));
     return;
   }
-  if (tasks.length === 0) {
+  if (!result.length) {
     alert(_("exportNoData"));
     return;
   }
-  const text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
-  await navigator.clipboard.writeText(text);
-  alert(_("exportCopied", [ tasks.length ]));
+  await navigator.clipboard.writeText(result.text);
+  alert(_("exportCopied", [ result.length ]));
 }
 
 function deleteDB() {
@@ -91,8 +91,15 @@ async function disableButton(button, action) {
         {_("sidebarBtnStartRecording")}
       {/if}
     </button>
-    <button onclick={exportMedia}>
-      {_("sidebarBtnExportMedia")}
+    <label>
+      <span>{_("sidebarExportTypeLabel")}</span>
+      <select bind:value={exportType}>
+        <option value="media">{_("sidebarExportTypeMedia")}</option>
+        <option value="url">{_("sidebarExportTypeUrl")}</option>
+      </select>
+    </label>
+    <button onclick={exportData}>
+      {_("sidebarBtnExport")}
     </button>
     <button onclick={deleteDB}>
       {_("sidebarBtnDeleteDB")}
@@ -119,6 +126,13 @@ async function disableButton(button, action) {
   text-align: center;
   button {
     margin: 5px;
+  }
+  select {
+    display: inline-block;
+    width: auto;
+  }
+  > * {
+    white-space: nowrap;
   }
 }
 .logger-head {

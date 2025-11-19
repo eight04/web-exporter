@@ -95,8 +95,20 @@
     "message": "Stop Recording",
     "description": "Button text to stop recording."
   },
-  "sidebarBtnExportMedia": {
-    "message": "Export Media",
+  "sidebarExportTypeLabel": {
+    "message": "Export Type:",
+    "description": "Label for export type selection."
+  },
+  "sidebarExportTypeUrl": {
+    "message": "URLs",
+    "description": "Export type option for URLs."
+  },
+  "sidebarExportTypeMedia": {
+    "message": "Media",
+    "description": "Export type option for Media."
+  },
+  "sidebarBtnExport": {
+    "message": "Export Data",
     "description": "Button text to export recorded data."
   },
   "sidebarBtnDeleteDB": {
