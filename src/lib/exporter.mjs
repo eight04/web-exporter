@@ -1,12 +1,23 @@
 import {parse as pathParse} from "path-unified/posix";
 import pyformat from "js-pyformat";
 
-export default createDownloader();
+export default init();
 
-function createDownloader() {
+function init() {
   const tasks = [];
   return {
-    download: (urls, {default_ext, filename, ctx}) => {
+    export: ({type, ...rest}) => {
+      if (type === "media") {
+        return this.exportMedia(rest);
+      }
+      if (type === "url") {
+        return this.exportUrl(rest);
+      }
+    },
+    exportUrl: ({input: urls}) => {
+      tasks.push(...urls.map(url => ({url})));
+    },
+    exportMedia: ({input: urls, default_ext, filename, ctx}) => {
       ctx = {...ctx};
       for (let i = 0; i < urls.length; i++) {
         const url = new URL(urls[i]);

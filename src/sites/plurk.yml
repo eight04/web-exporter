@@ -117,6 +117,7 @@ extractors:
 
 exporters:
   plurks:
+    type: media
     steps:
       - use: store
         table: plurks
@@ -142,12 +143,13 @@ exporters:
             input: media_urls
             condition: IS_IMAGE
             output: media_urls
-          - use: download
+          - use: export
             input: media_urls
             default_ext: jpg
             filename: '{plurk_id}_{nick_name}_{index}_{posted_date:%y%m%d}{ext}'
 
   responses:
+    type: media
     steps:
       - use: store
         table: responses
@@ -173,7 +175,7 @@ exporters:
             input: media_urls
             condition: IS_IMAGE
             output: media_urls
-          - use: download
+          - use: export
             input: media_urls
             default_ext: jpg
             filename: '{plurk_id}_r_{id}_{nick_name}_{index}_{posted_date:%y%m%d}{ext}'

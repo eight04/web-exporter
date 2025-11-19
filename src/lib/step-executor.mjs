@@ -1,7 +1,7 @@
 import {IMAGE, URL} from "linkify-plus-plus-core/lib/rx.js";
 
 import {getStore} from "./store.mjs";
-import downloader from "./downloader.mjs";
+import exporter from "./exporter.mjs";
 import logger from "./logger.mjs";
 import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
@@ -171,11 +171,16 @@ const STEPPER = {
     });
     return result;
   },
-  download: async (ctx, step, input, model) => {
+  export: async (ctx, step, input, model) => {
     if (!Array.isArray(input)) {
       input = [input];
     }
-    return await downloader.download(input, {...step, ctx: model});
+    return await exporter.export({
+      ...step,
+      input,
+      type: ctx.exporter_type,
+      ctx: model
+    })
   },
   find: (ctx, step, input) => {
     let result = null;
