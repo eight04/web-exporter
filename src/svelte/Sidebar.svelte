@@ -8,7 +8,7 @@ const logs = $state([]); // { id: number, message: string }[]
 const port = browser.runtime.connect({ name: "logger" });
 let logger;
 let recording = $state(false);
-let exportType = $state(undefined);
+let exportType = $state("media");
 
 function pushLog(arg) {
   logs.push(arg);
@@ -48,25 +48,19 @@ function toggleRecording() {
 // }
 
 async function exportData() {
-  let tasks;
+  let result;
   try {
-    tasks = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportData", type: exportType }) );
+    result = await disableButton(this, () => browser.runtime.sendMessage({ method: "exportData", type: exportType }) );
   } catch (e) {
     alert(e.message || String(e));
     return;
   }
-  if (tasks.length === 0) {
+  if (!result.length) {
     alert(_("exportNoData"));
     return;
   }
-  let text;
-  if (exportType === "media") {
-    text = tasks.map(t => `${t.url}#out=${t.filename}`).join("\n");
-  } else if (exportType === "url") {
-    text = tasks.map(t => t.url).join("\n");
-  }
-  await navigator.clipboard.writeText(text);
-  alert(_("exportCopied", [ tasks.length ]));
+  await navigator.clipboard.writeText(result.text);
+  alert(_("exportCopied", [ result.length ]));
 }
 
 function deleteDB() {

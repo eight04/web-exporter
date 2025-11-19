@@ -15,7 +15,18 @@ function init() {
       }
     },
     getTasks: () => tasks.slice(),
-    clearTasks: () => { tasks.length = 0; }
+    clearTasks: () => { tasks.length = 0; },
+    output: () => {
+      let text = "";
+      for (const t of tasks) {
+        if (t.filename) {
+          text += `${t.url}#out=${t.filename}\n`;
+        } else {
+          text += `${t.url}\n`;
+        }
+      }
+      return text;
+    }
   };
 
   function exportUrl({input: urls}) {

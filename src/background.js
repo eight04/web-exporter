@@ -90,7 +90,8 @@ async function exportData({type}) {
       await stepExecutor(ctx);
     }
   }
-  const tasks = exporter.getTasks();
+  const length = exporter.getTasks().length;
+  const text = exporter.output();
   exporter.clearTasks();
-  return tasks;
+  return {text, length};
 }
