@@ -8,6 +8,7 @@ import {logger} from "./logger.mjs";
 export const spiderHouse = init();
 
 function init() {
+  // TODO: cleanup closed tabs
   let runningSpiders = new Map(); // tabId -> ctx
 
   return {
@@ -34,12 +35,12 @@ function init() {
         });
     },
     async stop({tabId}) {
-      const spider = runningSpiders.get(tabId);
-      if (!spider) {
+      const ctx = runningSpiders.get(tabId);
+      if (!ctx) {
         throw new Error(`No spider is running on tab ${tabId}`);
       }
-      spider.abortController.abort();
-      await spider.promise;
+      ctx.abortController.abort();
+      await ctx.promise;
     },
     isRunning(tabId) {
       return runningSpiders.has(tabId);

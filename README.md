@@ -41,6 +41,15 @@ exporter:
         [param1]: <value1>
         [param2]: <value2>
         ...
+
+spiders:
+  [spider_name]:
+    url: <url_pattern> # required, a URLPattern string to match pages
+    steps:             # list of steps to interact with the page
+      - use: <step_name>
+        [param1]: <value1>
+        [param2]: <value2>
+        ...
 ```
 
 Steps
@@ -88,7 +97,7 @@ Store the input data to the database, or fetch data from the database as the out
 
 `table` - required, the database table name to store the data.
 
-`method` - required, the storage method. Can be `put`, `putMany`, `getAll`. Currently `put` is implemented as `add` so users will get an error if the key already exists. This should make it easier to spot duplicated entries while recording.
+`method` - required, the storage method. Can be `put`, `putMany`, `getAll`.
 
 ### table_join
 
@@ -203,7 +212,7 @@ Set a constant value as output.
 
 Refresh the page or navigate to a specified URL.
 
-`url` - optional, the URL to navigate to. If not specified, the current page will be refreshed.
+`url` - optional, a python template. The URL to navigate to. If not specified, the current page will be refreshed. Can be a relative path.
 
 ### spider_click
 
@@ -227,6 +236,10 @@ Repeat a set of steps until loop_break step is called.
 
 Break the current loop.
 
+### object_values
+
+Get the values of an object as an array. Return an empty array if the input is not an object.
+
 Todos
 -----
 
@@ -242,6 +255,12 @@ Changelog
   - Add: export twitter spaces URLs.
   - Change: rename step `download` to `export`.
   - Change: add `type` field to exporter.
+  - Fix: `$` can't be used in json path.
+  - Add: spiders.
+  - Add: `NOT_TRUE` condition.
+  - Add: `ref` property to `for_each` step.
+  - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
+  - Change: use `put` instead of `add` in store step.
 
 * 0.2.0 (Nov 17, 2025)
   
