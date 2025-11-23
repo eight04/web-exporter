@@ -80,6 +80,7 @@ spiders:
               - use: loop_break
           - use: wait
             extractor: post_listCreator
+            seconds: 2
 
   post_info:
     url: https://*.fanbox.cc/*

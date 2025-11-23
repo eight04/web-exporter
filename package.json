@@ -55,6 +55,7 @@
   "repository": "eight04/web-exporter",
   "private": true,
   "dependencies": {
+    "delay": "^7.0.0",
     "dexie": "^4.2.1",
     "event-lite": "^1.0.0",
     "js-pyformat": "^0.0.2",

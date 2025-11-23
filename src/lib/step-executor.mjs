@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 import * as RX from "linkify-plus-plus-core/lib/rx.js";
 import {pEvent} from "p-event";
 import pyformat from "js-pyformat";
+import delay from "delay";
 
 import {getStore} from "./store.mjs";
 import {exporter} from "./exporter.mjs";
@@ -260,8 +261,10 @@ const STEPPER = {
       let u = pyformat(step.url, {...ctx, ...input});
       const {url: baseUrl} = await browser.tabs.get(ctx.tabId);
       u = new URL(u, baseUrl).toString();
+      logger.log(`spider_refresh: navigating to ${u}`);
       await browser.tabs.update(ctx.tabId, {url: u});
     } else {
+      logger.log(`spider_refresh: reloading tab`);
       await browser.tabs.reload(ctx.tabId);
     }
   },
@@ -272,6 +275,7 @@ const STEPPER = {
         method: "spiderClick",
         selector: step.selector
       });
+      logger.log(`spider_click: ${success ? "success" : "failed"}`);
     } catch (err) {
       console.error("spider_click error:", err);
     } finally {
@@ -279,12 +283,18 @@ const STEPPER = {
     }
   },
   wait: async (ctx, step) => {
+    const ps = [];
     if (step.extractor) {
       const hash = `${ctx.site_id}::${step.extractor}::start`;
-      await pEvent(extractor, hash, {timeout: step.timeout || 30000, signal: ctx.abortController?.signal});
-    } else {
-      throw new Error("wait step requires extractor field");
+      ps.push(pEvent(extractor, hash, {timeout: step.timeout || 30000, signal: ctx.abortController?.signal}));
     }
+    if (step.seconds) {
+      ps.push(delay(step.seconds * 1000, {signal: ctx.abortController?.signal}));
+    }
+    if (!ps.length) {
+      throw new Error("wait step requires extractor or seconds");
+    }
+    await Promise.all(ps);
   },
   loop: async (ctx, step, input) => {
     let aborted = false;

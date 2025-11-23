@@ -3,6 +3,7 @@
   "node_modules/esm-env/true.js",
   "node_modules/event-lite/event-lite.mjs",
   "node_modules/js-pyformat/pyformat.js",
+  "node_modules/random-int/index.js",
   "node_modules/webextension-polyfill/dist/browser-polyfill.js",
   "src/sites/index.mjs",
   "src/svelte/Sidebar.svelte"

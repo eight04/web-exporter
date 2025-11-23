@@ -261,6 +261,7 @@ Changelog
   - Add: `ref` property to `for_each` step.
   - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
   - Change: use `put` instead of `add` in store step.
+  - Add: fanbox site.
 
 * 0.2.0 (Nov 17, 2025)
   
