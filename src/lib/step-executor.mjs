@@ -261,10 +261,10 @@ const STEPPER = {
       let u = pyformat(step.url, {...ctx, ...input});
       const {url: baseUrl} = await browser.tabs.get(ctx.tabId);
       u = new URL(u, baseUrl).toString();
-      logger.log(`spider_refresh: navigating to ${u}`);
+      logger.log(`navigating to ${u}`);
       await browser.tabs.update(ctx.tabId, {url: u});
     } else {
-      logger.log(`spider_refresh: reloading tab`);
+      logger.log(`reloading tab`);
       await browser.tabs.reload(ctx.tabId);
     }
   },
@@ -275,7 +275,7 @@ const STEPPER = {
         method: "spiderClick",
         selector: step.selector
       });
-      logger.log(`spider_click: ${success ? "success" : "failed"}`);
+      logger.log(`click ${step.selector} result: ${success}`);
     } catch (err) {
       console.error("spider_click error:", err);
     } finally {
