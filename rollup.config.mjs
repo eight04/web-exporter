@@ -30,7 +30,7 @@ export default async () => ({
       ]
     }),
     svelte({
-      include: "src/**/*.svelte",
+      include: ["src/**/*.svelte", "src/**/*.svelte.js"],
       emitCss: false
     }),
     json(),

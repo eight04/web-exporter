@@ -1,7 +1,7 @@
 import Dexie from "dexie/dist/modern/dexie.mjs";
 
 import sites from "../sites/index.mjs";
-import logger from "./logger.mjs";
+import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 
 const CONNECTED_STORES = {};
@@ -18,13 +18,21 @@ class Store {
     return await this.putMany({extractor_id, table, value: [value]});
   }
   async putMany({extractor_id, table, value}) {
+    const primaryKey = this.db[table].schema.primKey.name;
     logger.log(_("storePutMany", [value.length, table]));
     value.forEach(v => {
       v.extractor_id = extractor_id;
     });
+    if (value.length === 1) {
+      logger.log(value[0][primaryKey]);
+    } else {
+      const firstKey = value[0][primaryKey];
+      const lastKey = value[value.length - 1][primaryKey];
+      logger.log(`${firstKey} ... ${lastKey}`);
+    }
     // https://dexie.org/docs/DexieErrors/Dexie.BulkError
     try {
-      await this.db[table].bulkAdd(value);
+      await this.db[table].bulkPut(value);
       logger.log(_("storePutManySuccess"));
     } catch (e) {
       if (e.name === "BulkError") {

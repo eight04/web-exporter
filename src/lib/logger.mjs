@@ -1,6 +1,6 @@
 import browser from "webextension-polyfill";
 
-export default createLogger();
+export const logger = createLogger();
 
 function createLogger() {
   let INC = 0;

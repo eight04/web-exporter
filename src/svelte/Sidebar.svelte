@@ -3,12 +3,49 @@ import browser from "webextension-polyfill";
 import {tick} from "svelte";
 import { _ } from "../lib/i18n.mjs";
 
+import sites from "../sites/index.mjs";
+import {currentTab} from "./current-tab.svelte.js";
+
 const MAX_LOGS = 100;
 const logs = $state([]); // { id: number, message: string }[]
 const port = browser.runtime.connect({ name: "logger" });
 let logger;
 let recording = $state(false);
 let exportType = $state("media");
+
+const allSpiders = [];
+for (const site of Object.values(sites)) {
+  if (!site.spiders) continue;
+  for (const key in site.spiders) {
+    allSpiders.push({
+      id: key,
+      site_id: site.id,
+      url: new URLPattern(site.spiders[key].url),
+    });
+  }
+}
+
+let spider = $state(null);
+let spiderRunning = $state(false);
+
+function updateSpiderStatus(tabId) {
+  browser.runtime.sendMessage({ method: "isSpiderRunning", tabId }).then((isRunning) => {
+    spiderRunning = isRunning;
+  });
+}
+
+$effect(() => {
+  updateSpiderStatus(currentTab.id);
+});
+
+browser.runtime.onMessage.addListener((msg) => {
+  if (msg.method === "spiderStatusChanged") {
+    updateSpiderStatus(currentTab.id);
+  }
+});
+
+const currentUrl = $derived(currentTab.url);
+let spiders = $derived(allSpiders.filter(s => s.url.test(currentUrl)));
 
 function pushLog(arg) {
   logs.push(arg);
@@ -42,11 +79,6 @@ function toggleRecording() {
   }
 }
 
-// async function startExport() {
-//   const currentTab = await browser.tabs.query({ active: true, currentWindow: true });
-//   await browser.tabs.create({ url: browser.runtime.getURL("export.html"), openerTabId: currentTab[0].id });
-// }
-
 async function exportData() {
   let result;
   try {
@@ -61,6 +93,22 @@ async function exportData() {
   }
   await navigator.clipboard.writeText(result.text);
   alert(_("exportCopied", [ result.length ]));
+}
+
+function toggleSpider() {
+  if (!spider) {
+    alert(_("sidebarSpiderNoSelection"));
+    return;
+  }
+  disableButton(this, async () => {
+    if (spiderRunning) {
+      await browser.runtime.sendMessage({ method: "stopSpider", tabId: currentTab.id});
+    } else {
+      await browser.runtime.sendMessage({ method: "startSpider", site_id: spider.site_id, id: spider.id, tabId: currentTab.id })
+    }
+  }).catch(err => {
+    alert(err.message || String(err));
+  });
 }
 
 function deleteDB() {
@@ -100,6 +148,21 @@ async function disableButton(button, action) {
     </label>
     <button onclick={exportData}>
       {_("sidebarBtnExport")}
+    </button>
+    <label>
+      <span>{_("sidebarSpiderLabel")}</span>
+      <select bind:value={spider}>
+        {#each spiders as spider}
+          <option value={spider}>{spider.id}</option>
+        {/each}
+      </select>
+    </label>
+    <button onclick={toggleSpider}>
+      {#if spiderRunning}
+        {_("sidebarSpiderStopBtn")}
+      {:else}
+        {_("sidebarSpiderStartBtn")}
+      {/if}
     </button>
     <button onclick={deleteDB}>
       {_("sidebarBtnDeleteDB")}

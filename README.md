@@ -148,6 +148,8 @@ Iterate over each item in the input array, and execute a list of steps for each 
 
 `condition` - optional. See `if` step for details. The condition is evaluated for each item, and the steps are only executed if the condition is true.
 
+`ref` - optional, the name of the variable to store the current item. If not specified, the current item will be used as input data for substeps. If specified, the item will get an additional property `index` representing the count of executions starting from 0.
+
 `steps` - required, an array of steps to execute for each item.
 
 ### date
@@ -196,6 +198,34 @@ Log the input data to the console for debugging purposes.
 Set a constant value as output.
 
 `value` - required, the constant value.
+
+### spider_refresh
+
+Refresh the page or navigate to a specified URL.
+
+`url` - optional, the URL to navigate to. If not specified, the current page will be refreshed.
+
+### spider_click
+
+Click an element on the page.
+
+`selector` - required, a CSS selector to find the element to click. You can use the `else` step to handle the case when the element is not found.
+
+### wait
+
+Wait for a specified event.
+
+`extractor` - the name of the extractor to wait for.
+
+### loop
+
+Repeat a set of steps until loop_break step is called.
+
+`steps` - required, an array of steps to execute in each iteration.
+
+### loop_break
+
+Break the current loop.
 
 Todos
 -----
