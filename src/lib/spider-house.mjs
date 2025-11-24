@@ -16,6 +16,12 @@ function init() {
       if (runningSpiders.has(tabId)) {
         throw new Error(`Spider is already running on tab ${tabId}`);
       }
+      if (!sites[site_id]) {
+        throw new Error(`Site ${site_id} not found`);
+      }
+      if (!sites[site_id].spiders?.[id]) {
+        throw new Error(`Spider ${id} not found for site ${site_id}`);
+      }
       const spec = sites[site_id].spiders[id];
       const ctx = {
         ...spec,

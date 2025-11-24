@@ -2,7 +2,7 @@
 import browser from "webextension-polyfill";
 
 import sites from "./sites/index.mjs";
-import {extractor} from "./lib/extrator.mjs";
+import {extractor} from "./lib/extractor.mjs";
 import {deleteAllDatabases} from "./lib/store.mjs";
 import {stepExecutor} from "./lib/step-executor.mjs";
 import {exporter} from "./lib/exporter.mjs";

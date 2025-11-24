@@ -6,7 +6,7 @@ import delay from "delay";
 
 import {getStore} from "./store.mjs";
 import {exporter} from "./exporter.mjs";
-import {extractor} from "./extrator.mjs";
+import {extractor} from "./extractor.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
@@ -161,9 +161,10 @@ const STEPPER = {
       let subModel;
       if (step.ref) {
         subModel = model;
-        jp.set(subModel, step.ref, item);
-        if (typeof item === "object") {
-          item.index = result.length;
+        if (typeof item === "object" && item !== null) {
+          jp.set(subModel, step.ref, {...item, index: result.length});
+        } else {
+          jp.set(subModel, step.ref, item);
         }
       } else {
         subModel = item;

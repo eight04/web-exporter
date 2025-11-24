@@ -1,7 +1,9 @@
 <script>
 import browser from "webextension-polyfill";
 import {tick} from "svelte";
+
 import { _ } from "../lib/i18n.mjs";
+import {mutex} from "../lib/mutex.mjs";
 
 import sites from "../sites/index.mjs";
 import {currentTab} from "./current-tab.svelte.js";
@@ -28,11 +30,10 @@ for (const site of Object.values(sites)) {
 let spider = $state(null);
 let spiderRunning = $state(false);
 
-function updateSpiderStatus(tabId) {
-  browser.runtime.sendMessage({ method: "isSpiderRunning", tabId }).then((isRunning) => {
-    spiderRunning = isRunning;
-  });
-}
+const updateSpiderStatus = mutex(async (tabId) => {
+  const result = await browser.runtime.sendMessage({ method: "isSpiderRunning", tabId });
+  spiderRunning = result;
+}, { maxPending: 1 });
 
 $effect(() => {
   updateSpiderStatus(currentTab.id);

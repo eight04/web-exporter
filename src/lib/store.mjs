@@ -18,6 +18,10 @@ class Store {
     return await this.putMany({extractor_id, table, value: [value]});
   }
   async putMany({extractor_id, table, value}) {
+    if (!value.length) {
+      console.warn("storePutMany called with empty value array");
+      return;
+    }
     const primaryKey = this.db[table].schema.primKey.name;
     logger.log(_("storePutMany", [value.length, table]));
     value.forEach(v => {

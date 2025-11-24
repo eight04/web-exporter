@@ -14,7 +14,7 @@ function spiderClick({selector}) {
       resolve(false);
       return;
     }
-    element.click();
     resolve(true);
+    element.click();
   });
 }
