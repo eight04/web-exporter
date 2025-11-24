@@ -25,5 +25,16 @@ export default [
         ...globals.node,
       }
     }
+  },
+  {
+    files: ["**/*.svelte.js"],
+    languageOptions: {
+      globals: {
+        // Svelte specific globals
+        $state: "readonly",
+        $derived: "readonly",
+        $effect: "readonly",
+      }
+    }
   }
 ];

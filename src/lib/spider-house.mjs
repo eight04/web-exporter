@@ -1,0 +1,68 @@
+import browser from "webextension-polyfill";
+
+import sites from "../sites/index.mjs";
+
+import {stepExecutor} from "./step-executor.mjs";
+import {logger} from "./logger.mjs";
+
+export const spiderHouse = init();
+
+function init() {
+  // TODO: cleanup closed tabs
+  let runningSpiders = new Map(); // tabId -> ctx
+
+  return {
+    async start({tabId, site_id, id}) {
+      if (runningSpiders.has(tabId)) {
+        throw new Error(`Spider is already running on tab ${tabId}`);
+      }
+      if (!sites[site_id]) {
+        throw new Error(`Site ${site_id} not found`);
+      }
+      if (!sites[site_id].spiders?.[id]) {
+        throw new Error(`Spider ${id} not found for site ${site_id}`);
+      }
+      const spec = sites[site_id].spiders[id];
+      const ctx = {
+        ...spec,
+        site_id,
+        spider_id: id,
+        tabId,
+        abortController: new AbortController(),
+        promise: null
+      };
+      logger.log(`Starting spider ${ctx.spider_id} on tab ${ctx.tabId}`);
+      runningSpiders.set(ctx.tabId, ctx);
+      browser.runtime.sendMessage({
+        method: "spiderStatusChanged",
+      });
+      ctx.promise = stepExecutor(ctx);
+      ctx.promise
+        .finally(() => {
+          runningSpiders.delete(ctx.tabId);
+          browser.runtime.sendMessage({
+            method: "spiderStatusChanged",
+          });
+        })
+        .then(() => {
+          logger.log(`Spider ${ctx.spider_id} on tab ${ctx.tabId} finished`);
+        })
+        .catch(err => {
+          logger.error(err);
+        });
+    },
+    async stop({tabId}) {
+      const ctx = runningSpiders.get(tabId);
+      if (!ctx) {
+        throw new Error(`No spider is running on tab ${tabId}`);
+      }
+      ctx.abortController.abort();
+      await ctx.promise;
+    },
+    isRunning(tabId) {
+      return runningSpiders.has(tabId);
+    }
+  };
+}
+
+

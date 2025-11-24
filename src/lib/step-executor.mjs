@@ -1,8 +1,13 @@
-import {IMAGE, URL} from "linkify-plus-plus-core/lib/rx.js";
+import browser from "webextension-polyfill";
+import * as RX from "linkify-plus-plus-core/lib/rx.js";
+import {pEvent} from "p-event";
+import pyformat from "js-pyformat";
+import delay from "delay";
 
 import {getStore} from "./store.mjs";
-import exporter from "./exporter.mjs";
-import logger from "./logger.mjs";
+import {exporter} from "./exporter.mjs";
+import {extractor} from "./extractor.mjs";
+import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
 
@@ -25,14 +30,14 @@ const RESPONSE_TYPE = {
 }
 
 const DEFAULT_RX = {
-  IMAGE,
-  URL
+  ...RX
 };
 
 const BUILTIN_CONDITIONS = {
-  IS_IMAGE: it => IMAGE.test(it),
-  IS_URL: it => URL.test(it),
+  IS_IMAGE: it => RX.IMAGE.test(it),
+  IS_URL: it => RX.URL.test(it),
   NOT_NULL: it => it !== null && it !== undefined,
+  NOT_TRUE: it => !it,
 }
 
 const STEPPER = {
@@ -144,7 +149,7 @@ const STEPPER = {
     }
     return result;
   },
-  for_each: async (ctx, step, input) => {
+  for_each: async (ctx, step, input, model) => {
     const result = [];
     if (!step.test_fn && step.condition) {
       step.test_fn = compileCondition(step.condition);
@@ -153,7 +158,18 @@ const STEPPER = {
       if (step.test_fn && !step.test_fn(item)) {
         continue;
       }
-      const value = await stepExecutor({...ctx, steps: step.steps}, item);
+      let subModel;
+      if (step.ref) {
+        subModel = model;
+        if (typeof item === "object" && item !== null) {
+          jp.set(subModel, step.ref, {...item, index: result.length});
+        } else {
+          jp.set(subModel, step.ref, item);
+        }
+      } else {
+        subModel = item;
+      }
+      const value = await stepExecutor({...ctx, steps: step.steps}, subModel);
       result.push(value);
     }
     return result;
@@ -235,16 +251,78 @@ const STEPPER = {
     return input.flat(step.depth ?? Infinity);
   },
   debug: (ctx, step, input) => {
-    console.log("DEBUG STEP:", step.message || "", input);
-    logger.log(`DEBUG: ${step.message || ""}`);
+    console.log("DEBUG:", ctx, step, input);
+    logger.log(pyformat(step.message || "DEBUG: {0}", input));
   },
   const: (ctx, step) => {
     return step.value;
+  },
+  spider_refresh: async (ctx, step, input) => {
+    if (step.url) {
+      let u = pyformat(step.url, {...ctx, ...input});
+      const {url: baseUrl} = await browser.tabs.get(ctx.tabId);
+      u = new URL(u, baseUrl).toString();
+      logger.log(`navigating to ${u}`);
+      await browser.tabs.update(ctx.tabId, {url: u});
+    } else {
+      logger.log(`reloading tab`);
+      await browser.tabs.reload(ctx.tabId);
+    }
+  },
+  spider_click: async (ctx, step) => {
+    let success = false;
+    try {
+      success = await browser.tabs.sendMessage(ctx.tabId, {
+        method: "spiderClick",
+        selector: step.selector
+      });
+      logger.log(`click ${step.selector} result: ${success}`);
+    } catch (err) {
+      console.error("spider_click error:", err);
+    } finally {
+      ctx.test_result = success;
+    }
+  },
+  wait: async (ctx, step) => {
+    const ps = [];
+    if (step.extractor) {
+      const hash = `${ctx.site_id}::${step.extractor}::start`;
+      ps.push(pEvent(extractor, hash, {timeout: step.timeout || 30000, signal: ctx.abortController?.signal}));
+    }
+    if (step.seconds) {
+      ps.push(delay(step.seconds * 1000, {signal: ctx.abortController?.signal}));
+    }
+    if (!ps.length) {
+      throw new Error("wait step requires extractor or seconds");
+    }
+    await Promise.all(ps);
+  },
+  loop: async (ctx, step, input) => {
+    let aborted = false;
+    while (!aborted) {
+      await stepExecutor(
+        {
+          ...ctx,
+          steps: step.steps,
+          breakLoop: () => aborted = true
+        },
+        input,
+        () => aborted
+      );
+    }
+  },
+  loop_break: (ctx) => {
+    ctx.breakLoop();
+  },
+  object_values: (ctx, step, input) => {
+    if (!input) return [];
+    return Object.values(input);
   }
 }
 
-export async function stepExecutor(ctx, model = null) {
+export async function stepExecutor(ctx, model = null, shouldBreak = null) {
   for (const step of ctx.steps) {
+    ctx.abortController?.signal.throwIfAborted();
     let input;
     if ("input" in step) {
       input = jp.get(model, step.input);
@@ -252,12 +330,22 @@ export async function stepExecutor(ctx, model = null) {
       input = model;
     }
     const output = await STEPPER[step.use](ctx, step, input, model);
+    // FIXME: should we allow falsy output?
     if (output) {
       if ("output" in step) {
-        jp.set(model, step.output, output);
+        let [, m, outputPath] = step.output.match(/^(\+)?(.*)$/);
+        if (!m) {
+          jp.set(model, outputPath, output);
+        } else {
+          let oldValue = jp.get(model, outputPath, []);
+          jp.set(model, outputPath, oldValue.concat(output));
+        }
       } else {
         model = output;
       }
+    }
+    if (shouldBreak && shouldBreak()) {
+      break;
     }
   }
   return model;

@@ -115,6 +115,22 @@
     "message": "Delete Database",
     "description": "Button text to delete recorded data."
   },
+  "sidebarSpiderLabel": {
+    "message": "Spider:",
+    "description": "Label for spider mode toggle."
+  },
+  "sidebarSpiderStartBtn": {
+    "message": "Release Spider",
+    "description": "Button text to run spider mode."
+  },
+  "sidebarSpiderStopBtn": {
+    "message": "Recall Spider",
+    "description": "Button text to stop spider mode."
+  },
+  "sidebarSpiderNoSelection": {
+    "message": "No spider selected",
+    "description": "Message shown when no spider is selected."
+  },
   "extractorStarted": {
     "message": "Extractor started",
     "description": "Message shown when the data extractor starts."

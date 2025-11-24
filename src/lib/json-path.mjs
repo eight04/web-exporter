@@ -1,6 +1,6 @@
 // TODO: switch to an advanced query language if needed?
 
-const RX = /\w+|\.(\w+)|\[(\d+)\]/y;
+const RX = /[\w$]+|\.([\w$]+)|\[(\d+)\]/y;
 
 /**
  * Parses a string path into an array of keys.

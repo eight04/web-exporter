@@ -1,0 +1,98 @@
+id: fanbox
+
+db:
+  - version: 1
+    schema:
+      posts: id
+      postInfos: id
+
+extractors:
+  post_listCreator:
+    url: https://api.fanbox.cc/post.listCreator?*
+    steps:
+      - use: response
+        type: json
+      - use: store
+        input: body
+        table: posts
+        method: putMany
+
+  post_info:
+    url: https://api.fanbox.cc/post.info?*
+    steps:
+      - use: response
+        type: json
+      - use: store
+        input: body
+        table: postInfos
+        method: put
+
+exporters:
+  post_info:
+    type: media
+    steps:
+      - use: store
+        table: postInfos
+        method: getAll
+      - use: for_each
+        steps:
+          - use: date
+            input: publishedDatetime
+            output: published_date
+          - use: date
+            input: updatedDatetime
+            output: updated_date
+          - use: object_values
+            input: body.fileMap
+            output: +body.files
+          - use: object_values
+            input: body.imageMap
+            output: +body.images
+          - use: for_each
+            input: body.files
+            ref: $
+            steps:
+              - use: export
+                input: $.url
+                filename: '{creatorId}_{id}_{title}_file_{$.index}_{$.name}_{updated_date:%y%m%d}.{$.extension}'
+            output: NOL
+          - use: for_each
+            input: body.images
+            ref: $
+            steps:
+              - use: export
+                input: $.originalUrl
+                filename: '{creatorId}_{id}_{title}_image_{$.index}_{updated_date:%y%m%d}.{$.extension}'
+
+spiders:
+  posts:
+    url: https://*.fanbox.cc/posts?*
+    steps:
+      - use: spider_refresh
+      - use: wait
+        extractor: post_listCreator
+      - use: loop
+        steps:
+          - use: spider_click
+            selector: '[class*=Pagination__StyledLink]:has(pixiv-icon[name*=Next])'
+          - use: else
+            steps:
+              - use: loop_break
+          - use: wait
+            extractor: post_listCreator
+            seconds: 2
+
+  post_info:
+    url: https://*.fanbox.cc/*
+    steps:
+      - use: store
+        table: posts
+        method: getAll
+      - use: for_each
+        condition:
+          isRestricted: NOT_TRUE
+        steps:
+          - use: spider_refresh
+            url: /posts/{id}
+          - use: wait
+            extractor: post_info

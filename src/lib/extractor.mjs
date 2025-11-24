@@ -1,13 +1,15 @@
 import browser from "webextension-polyfill";
 // FIXME: https://bugzilla.mozilla.org/show_bug.cgi?id=1998871
 import {URLPattern} from "urlpattern-polyfill";
+import Events from "event-lite";
 
 import {stepExecutor} from "./step-executor.mjs";
-import logger from "./logger.mjs";
+import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 
-class Extractor {
+class Extractor extends Events {
   constructor() {
+    super();
     this.running = false;
     this.rules = [];
 
@@ -61,6 +63,7 @@ class Extractor {
       };
       for (const {rule, match} of matches) {
         Object.assign(ctx, {...rule, match});
+        this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
         try {
           await stepExecutor(ctx);
         } catch (e) {

@@ -41,6 +41,15 @@ exporter:
         [param1]: <value1>
         [param2]: <value2>
         ...
+
+spiders:
+  [spider_name]:
+    url: <url_pattern> # required, a URLPattern string to match pages
+    steps:             # list of steps to interact with the page
+      - use: <step_name>
+        [param1]: <value1>
+        [param2]: <value2>
+        ...
 ```
 
 Steps
@@ -88,7 +97,7 @@ Store the input data to the database, or fetch data from the database as the out
 
 `table` - required, the database table name to store the data.
 
-`method` - required, the storage method. Can be `put`, `putMany`, `getAll`. Currently `put` is implemented as `add` so users will get an error if the key already exists. This should make it easier to spot duplicated entries while recording.
+`method` - required, the storage method. Can be `put`, `putMany`, `getAll`.
 
 ### table_join
 
@@ -148,6 +157,8 @@ Iterate over each item in the input array, and execute a list of steps for each 
 
 `condition` - optional. See `if` step for details. The condition is evaluated for each item, and the steps are only executed if the condition is true.
 
+`ref` - optional, the name of the variable to store the current item. If not specified, the current item will be used as input data for substeps. If specified, the item will get an additional property `index` representing the count of executions starting from 0.
+
 `steps` - required, an array of steps to execute for each item.
 
 ### date
@@ -197,6 +208,40 @@ Set a constant value as output.
 
 `value` - required, the constant value.
 
+### spider_refresh
+
+Refresh the page or navigate to a specified URL.
+
+`url` - optional, a python template. The URL to navigate to. If not specified, the current page will be refreshed. Can be a relative path.
+
+### spider_click
+
+Click an element on the page.
+
+`selector` - required, a CSS selector to find the element to click. You can use the `else` step to handle the case when the element is not found.
+
+### wait
+
+Wait for a specified event.
+
+`extractor` - the name of the extractor to wait for.
+
+`seconds` - optional, the number of seconds to wait. This ensures a minimum wait time even if the extractor event is triggered earlier.
+
+### loop
+
+Repeat a set of steps until loop_break step is called.
+
+`steps` - required, an array of steps to execute in each iteration.
+
+### loop_break
+
+Break the current loop.
+
+### object_values
+
+Get the values of an object as an array. Return an empty array if the input is not an object.
+
 Todos
 -----
 
@@ -212,6 +257,13 @@ Changelog
   - Add: export twitter spaces URLs.
   - Change: rename step `download` to `export`.
   - Change: add `type` field to exporter.
+  - Fix: `$` can't be used in json path.
+  - Add: spiders.
+  - Add: `NOT_TRUE` condition.
+  - Add: `ref` property to `for_each` step.
+  - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
+  - Change: use `put` instead of `add` in store step.
+  - Add: fanbox site.
 
 * 0.2.0 (Nov 17, 2025)
   

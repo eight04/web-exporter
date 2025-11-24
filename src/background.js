@@ -1,11 +1,12 @@
 // import webextMenus from "webext-menus";
 import browser from "webextension-polyfill";
 
-import {extractor} from "./lib/extrator.mjs";
 import sites from "./sites/index.mjs";
+import {extractor} from "./lib/extractor.mjs";
 import {deleteAllDatabases} from "./lib/store.mjs";
 import {stepExecutor} from "./lib/step-executor.mjs";
-import exporter from "./lib/exporter.mjs";
+import {exporter} from "./lib/exporter.mjs";
+import {spiderHouse} from "./lib/spider-house.mjs";
 
 // this is used to log error raised by onMessage handler,
 // otherwise the stack trace will be removed after passing the error to the content script.
@@ -46,6 +47,12 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
       return deleteAllDatabases();
     case "exportData":
       return exportData(message);
+    case "startSpider":
+      return spiderHouse.start(message);
+    case "stopSpider":
+      return spiderHouse.stop(message);
+    case "isSpiderRunning":
+      return Promise.resolve(spiderHouse.isRunning(message.tabId));
 	}
 }));
 
@@ -95,3 +102,4 @@ async function exportData({type}) {
   exporter.clearTasks();
   return {text, length};
 }
+

@@ -1,7 +1,7 @@
 import {parse as pathParse} from "path-unified/posix";
 import pyformat from "js-pyformat";
 
-export default init();
+export const exporter = init();
 
 function init() {
   const tasks = [];

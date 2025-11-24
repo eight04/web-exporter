@@ -19,7 +19,8 @@
 		"unlimitedStorage",
 		"notifications",
     "webRequest",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "tabs"
 	],
   "browser_action": {
     "default_title": "Web Exporter",
@@ -36,5 +37,13 @@
 	"icons": {
 		"32": "images/icon.svg"
 	},
-	"default_locale": "en"
+	"default_locale": "en",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ]
 }
