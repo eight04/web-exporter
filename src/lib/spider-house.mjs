@@ -32,7 +32,18 @@ function init() {
         promise: null
       };
       logger.log(`Starting spider ${ctx.spider_id} on tab ${ctx.tabId}`);
-      ctx.promise = startSpider(ctx)
+      runningSpiders.set(ctx.tabId, ctx);
+      browser.runtime.sendMessage({
+        method: "spiderStatusChanged",
+      });
+      ctx.promise = stepExecutor(ctx);
+      ctx.promise
+        .finally(() => {
+          runningSpiders.delete(ctx.tabId);
+          browser.runtime.sendMessage({
+            method: "spiderStatusChanged",
+          });
+        })
         .then(() => {
           logger.log(`Spider ${ctx.spider_id} on tab ${ctx.tabId} finished`);
         })
@@ -52,21 +63,6 @@ function init() {
       return runningSpiders.has(tabId);
     }
   };
-
-  async function startSpider(ctx) {
-    runningSpiders.set(ctx.tabId, ctx);
-    browser.runtime.sendMessage({
-      method: "spiderStatusChanged",
-    });
-    try {
-      await stepExecutor( ctx );
-    } finally {
-      runningSpiders.delete(ctx.tabId);
-      browser.runtime.sendMessage({
-        method: "spiderStatusChanged",
-      });
-    }
-  }
 }
 
 

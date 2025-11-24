@@ -330,6 +330,7 @@ export async function stepExecutor(ctx, model = null, shouldBreak = null) {
       input = model;
     }
     const output = await STEPPER[step.use](ctx, step, input, model);
+    // FIXME: should we allow falsy output?
     if (output) {
       if ("output" in step) {
         let [, m, outputPath] = step.output.match(/^(\+)?(.*)$/);

@@ -226,6 +226,8 @@ Wait for a specified event.
 
 `extractor` - the name of the extractor to wait for.
 
+`seconds` - optional, the number of seconds to wait. This ensures a minimum wait time even if the extractor event is triggered earlier.
+
 ### loop
 
 Repeat a set of steps until loop_break step is called.

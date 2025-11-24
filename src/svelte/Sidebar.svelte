@@ -33,7 +33,7 @@ let spiderRunning = $state(false);
 const updateSpiderStatus = mutex(async (tabId) => {
   const result = await browser.runtime.sendMessage({ method: "isSpiderRunning", tabId });
   spiderRunning = result;
-}, { maxPending: 1 });
+}, { maxPending: 2 });
 
 $effect(() => {
   updateSpiderStatus(currentTab.id);
