@@ -8,7 +8,7 @@ import {getStore} from "./store.mjs";
 import {exporter} from "./exporter.mjs";
 import {extractor} from "./extractor.mjs";
 import {logger} from "./logger.mjs";
-import {_} from "./i18n.mjs";
+// import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
 
 const RESPONSE_TYPE = {
@@ -127,6 +127,9 @@ const STEPPER = {
     });
   },
   table_join: async (ctx, step, input) => {
+    if (!step.filter_method) {
+      step.filter_method = "keep_matched";
+    }
     const store = getStore(ctx.site_id);
     const tableData = await store.getAll({table: step.table});
     const map = new Map;
@@ -136,15 +139,26 @@ const STEPPER = {
     const result = [];
     for (const row of input) {
       const rightRow = map.get(jp.get(row, step.left_key));
-      if (rightRow) {
-        const o = {...row};
+      let prop;
+      if (rightRow && step.fields) {
+        prop = {};
         for (const key in step.fields) {
           const rightField = step.fields[key];
-          jp.set(o, key, jp.get(rightRow, rightField));
+          jp.set(prop, key, jp.get(rightRow, rightField));
         }
-        result.push(o);
+      }
+      if (step.filter_method === "remove_matched") {
+        if (!rightRow) {
+          result.push(row);
+        }
       } else {
-        logger.log(_("joinTableIndexError", [step.table, step.right_key, row[step.left_key]]));
+        if (step.filter_method === "keep_matched" && !rightRow) {
+          // pass
+        } else if (prop) {
+          result.push({...row, ...prop});
+        } else {
+          result.push(row);
+        }
       }
     }
     return result;
@@ -317,6 +331,12 @@ const STEPPER = {
   object_values: (ctx, step, input) => {
     if (!input) return [];
     return Object.values(input);
+  },
+  to_string: (ctx, step, input) => {
+    if (typeof input !== "number") {
+      throw new Error("to_string step requires number input");
+    }
+    return input.toString(step.base || 10);
   }
 }
 

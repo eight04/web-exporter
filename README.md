@@ -117,9 +117,11 @@ Join multiple tables from the database into a single array of objects. For examp
 
 `left_key` - required, the key in the current data to compare.
 
-`right_key` - required, the key in the joined table to compare.
+`right_key` - required, the key in the joined table to compare. If there are multiple rows matching, only one will be used.
 
-`fields` - required, a mapping of new field names to field names in the joined table.
+`fields` - optional, a mapping of new field names to field names in the joined table.
+
+`filter_method` - optional, can be "keep_all", "keep_matched", "remove_matched". Default is "keep_matched".
 
 ### if
 
