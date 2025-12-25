@@ -180,3 +180,35 @@ exporters:
             default_ext: jpg
             filename: '{plurk_id}_r_{id}_{nick_name}_{index}_{posted_date:%y%m%d}{ext}'
 
+spiders:
+  main_page_scroll_loop:
+    url: https://www.plurk.com/*
+    steps:
+      - use: loop
+        steps:
+          - use: spider_click
+            selector: '.browse_button .cmp_arrow_right'
+          - use: wait
+            seconds: 0.5
+
+  post_responses:
+    url: https://www.plurk.com/*
+    steps:
+      - use: store
+        table: plurks
+        method: getAll
+      - use: table_join
+        table: responses
+        left_key: id
+        right_key: plurk_id
+        filter_method: keep_unmatched
+      - use: for_each
+        steps:
+          - use: to_string
+            base: 36
+            input: id
+            output: id_base36
+          - use: spider_refresh
+            url: /p/{id_base36}
+          - use: wait
+            extractor: api_responses

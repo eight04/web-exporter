@@ -117,9 +117,11 @@ Join multiple tables from the database into a single array of objects. For examp
 
 `left_key` - required, the key in the current data to compare.
 
-`right_key` - required, the key in the joined table to compare.
+`right_key` - required, the key in the joined table to compare. If there are multiple rows matching, only one will be used.
 
-`fields` - required, a mapping of new field names to field names in the joined table.
+`fields` - optional, a mapping of new field names to field names in the joined table.
+
+`filter_method` - optional, can be "keep_all", "keep_matched", "keep_unmatched". Default is "keep_matched".
 
 ### if
 
@@ -242,6 +244,12 @@ Break the current loop.
 
 Get the values of an object as an array. Return an empty array if the input is not an object.
 
+### to_string
+
+Convert a number to a string. This is basically the `toString` method of Number.
+
+`base` - optional, the base to use for conversion. Default is 10.
+
 Todos
 -----
 
@@ -254,16 +262,19 @@ Changelog
 
 * Next
 
-  - Add: export twitter spaces URLs.
-  - Change: rename step `download` to `export`.
-  - Change: add `type` field to exporter.
-  - Fix: `$` can't be used in json path.
-  - Add: spiders.
   - Add: `NOT_TRUE` condition.
+  - Add: `filter_method` to `table_join` step.
   - Add: `ref` property to `for_each` step.
-  - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
-  - Change: use `put` instead of `add` in store step.
+  - Add: `to_string` step.
+  - Add: export twitter spaces URLs.
   - Add: fanbox site.
+  - Add: plurk spiders.
+  - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
+  - Add: spiders.
+  - Change: add `type` field to exporter.
+  - Change: rename step `download` to `export`.
+  - Change: use `put` instead of `add` in store step.
+  - Fix: `$` can't be used in json path.
 
 * 0.2.0 (Nov 17, 2025)
   
