@@ -201,7 +201,7 @@ spiders:
         table: responses
         left_key: id
         right_key: plurk_id
-        filter_method: remove_matched
+        filter_method: keep_unmatched
       - use: for_each
         steps:
           - use: to_string

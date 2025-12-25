@@ -139,25 +139,25 @@ const STEPPER = {
     const result = [];
     for (const row of input) {
       const rightRow = map.get(jp.get(row, step.left_key));
-      let prop;
-      if (rightRow && step.fields) {
-        prop = {};
-        for (const key in step.fields) {
-          const rightField = step.fields[key];
-          jp.set(prop, key, jp.get(rightRow, rightField));
-        }
-      }
-      if (step.filter_method === "remove_matched") {
-        if (!rightRow) {
+      if (!rightRow) {
+        if (step.filter_method === "keep_all" || step.filter_method === "keep_unmatched") {
           result.push(row);
         }
       } else {
-        if (step.filter_method === "keep_matched" && !rightRow) {
-          // pass
-        } else if (prop) {
-          result.push({...row, ...prop});
-        } else {
-          result.push(row);
+        if (step.filter_method === "keep_all" || step.filter_method === "keep_matched") {
+          let prop;
+          if (step.fields) {
+            prop = {};
+            for (const key in step.fields) {
+              const rightField = step.fields[key];
+              jp.set(prop, key, jp.get(rightRow, rightField));
+            }
+          }
+          if (prop) {
+            result.push({...row, ...prop});
+          } else {
+            result.push(row);
+          }
         }
       }
     }

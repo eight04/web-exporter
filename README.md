@@ -121,7 +121,7 @@ Join multiple tables from the database into a single array of objects. For examp
 
 `fields` - optional, a mapping of new field names to field names in the joined table.
 
-`filter_method` - optional, can be "keep_all", "keep_matched", "remove_matched". Default is "keep_matched".
+`filter_method` - optional, can be "keep_all", "keep_matched", "keep_unmatched". Default is "keep_matched".
 
 ### if
 
