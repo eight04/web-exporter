@@ -334,7 +334,7 @@ const STEPPER = {
   },
   to_string: (ctx, step, input) => {
     if (typeof input !== "number") {
-      throw new Error("to_string step requires number input");
+      throw new Error(`to_string step requires number input, got ${typeof input}`);
     }
     return input.toString(step.base || 10);
   }
