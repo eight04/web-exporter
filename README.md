@@ -184,6 +184,8 @@ Export input URLs. Usually you want to set a `filename` for media exporters but 
 
 `input` - *required if filename is set*, the field in the data context that contains the URL to export. The value of the field can be string or array of strings.
 
+`type` - optional, can be "media", "url", or "download". Default to the type of the exporter. "download" means to download the URL immediately, which is useful for URLs that are only valid for a short time.
+
 ### find
 
 Find an item in the input array with the maximum/minimum value of a specified field.
@@ -249,6 +251,12 @@ Get the values of an object as an array. Return an empty array if the input is n
 Convert a number to a string. This is basically the `toString` method of Number.
 
 `base` - optional, the base to use for conversion. Default is 10.
+
+### call
+
+Call another extractor/exporter/anything in the yml as a subroutine.
+
+`steps` - required, a json path relative to the yml document. It should point to an array of steps.
 
 Todos
 -----
