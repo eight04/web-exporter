@@ -4,6 +4,8 @@ import {pEvent} from "p-event";
 import pyformat from "js-pyformat";
 import delay from "delay";
 
+import sites from "../sites/index.mjs";
+
 import {getStore} from "./store.mjs";
 import {exporter} from "./exporter.mjs";
 import {extractor} from "./extractor.mjs";
@@ -168,7 +170,9 @@ const STEPPER = {
     if (!step.test_fn && step.condition) {
       step.test_fn = compileCondition(step.condition);
     }
-    for (const item of input) {
+    // don't use for of to support array-like objects
+    for (let i = 0; i < input.length; i++) {
+      const item = input[i];
       if (step.test_fn && !step.test_fn(item)) {
         continue;
       }
@@ -208,8 +212,9 @@ const STEPPER = {
     return await exporter.export({
       ...step,
       input,
-      type: ctx.exporter_type,
-      ctx: model
+      type: step.type || ctx.exporter_type,
+      ctx: model,
+      executorCtx: ctx
     })
   },
   find: (ctx, step, input) => {
@@ -337,6 +342,14 @@ const STEPPER = {
       throw new Error(`to_string step requires number input, got ${typeof input}`);
     }
     return input.toString(step.base || 10);
+  },
+  call: async (ctx, step, input) => {
+    const site_id = ctx.site_id;
+    const steps = jp.get(sites[site_id], step.steps);
+    if (!steps) {
+      throw new Error(`call step: steps not found at path ${step.steps}`);
+    }
+    return await stepExecutor({...ctx, steps}, input);
   }
 }
 
