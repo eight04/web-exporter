@@ -1,0 +1,63 @@
+id: fantia
+
+db:
+  - version: 1
+    schema:
+      posts: id
+
+extractors:
+  post:
+    url: https://fantia.jp/api/v1/posts/:id
+    steps:
+      - use: response
+        type: json
+      - use: json_get
+        path: post
+      - use: store
+        table: posts
+        method: put
+      - use: call
+        steps: download_post_steps
+
+download_post_steps:
+  - use: date
+    input: posted_at
+    output: posted_at_date
+  - use: if
+    condition:
+      thumb: NOT_NULL
+    steps:
+      - use: export
+        input: thumb.original
+        filename: '{fanclub.id}_{id}_{title}__{posted_at_date:%y%m%d}_thumb{ext}'
+        type: download
+  - use: for_each
+    input: post_contents
+    ref: $c
+    steps:
+      - use: if
+        condition:
+          $c.download_uri: NOT_NULL
+        steps:
+          - use: re
+            input: $c.download_uri
+            pattern: '.*'
+            template: 'https://fantia.jp$0'
+            output: $c.download_uri_full
+          - use: export
+            input: $c.download_uri_full
+            filename: '{fanclub.id}_{id}_{title}_{$c.index}_{posted_at_date:%y%m%d}_{$c.filename}'
+            type: download
+      - use: if
+        condition:
+          $c.post_content_photos: NOT_NULL
+        steps:
+          - use: for_each
+            input: $c.post_content_photos
+            ref: $p
+            steps:
+              - use: export
+                input: $p.url.original
+                filename: '{fanclub.id}_{id}_{title}_{$c.index}_{posted_at_date:%y%m%d}_photo_{$p.index}{ext}'
+                type: download
+

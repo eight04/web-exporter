@@ -20,7 +20,9 @@
 		"notifications",
     "webRequest",
     "webRequestBlocking",
-    "tabs"
+    "tabs",
+    "downloads",
+    "cookies"
 	],
   "browser_action": {
     "default_title": "Web Exporter",
