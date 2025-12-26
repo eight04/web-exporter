@@ -268,7 +268,7 @@ Todos
 Changelog
 ---------
 
-* Next
+* 0.3.0 (Dec 26, 2025)
 
   - Add: `NOT_TRUE` condition.
   - Add: `filter_method` to `table_join` step.
