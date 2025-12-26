@@ -72,6 +72,7 @@ function init() {
   async function download({input: urls, filename, ctx, executorCtx, default_ext}) {
     const files = renderFilename({urls, filename, ctx, default_ext});
     for (const file of files) {
+      // FIXME: download init error will throw the entire extractor process. Should we catch and let the extractor continue?
       await browser.downloads.download({
         url: file.url,
         filename: file.filename,

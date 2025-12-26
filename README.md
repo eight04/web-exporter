@@ -279,6 +279,9 @@ Changelog
   - Add: plurk spiders.
   - Add: spider_refresh, spider_click, wait, loop, loop_break, object_values steps.
   - Add: spiders.
+  - Add: fantia.
+  - Add: call step.
+  - Add: `download` export type.
   - Change: add `type` field to exporter.
   - Change: rename step `download` to `export`.
   - Change: use `put` instead of `add` in store step.
