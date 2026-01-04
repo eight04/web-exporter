@@ -70,6 +70,13 @@ extractors:
       - use: flat
       - use: for_each
         steps:
+          # sometime the tweet is wrapped in TweetWithVisibilityResults
+          - use: if
+            condition:
+              tweet.legacy: NOT_NULL
+            steps:
+              - use: json_get
+                path: tweet
           - use: store
             input: core.user_results.result
             table: users
