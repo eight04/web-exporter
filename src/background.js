@@ -89,6 +89,9 @@ function closeTab({tabId, opener}) {
 
 async function exportData({type}) {
   for (const [site_id, site] of Object.entries(sites)) {
+    if (!site.exporters) {
+      continue;
+    }
     for (const exporter of Object.values(site.exporters)) {
       if (exporter.type !== type) {
         continue;
