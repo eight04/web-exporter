@@ -65,7 +65,7 @@ When specifying a JSON path, you can use dot notation and array indices. For exa
 
 Extract the raw response from the webRequest. This only works in an extractor.
 
-`type` - required, the response type. Can be `json`, `text`.
+`type` - required, the response type. Can be `json`, `text`, `url_match`. If `url_match` is used, the result is the matched object from the URLPattern.
 
 ### re
 
@@ -194,6 +194,8 @@ Find an item in the input array with the maximum/minimum value of a specified fi
 
 `mode` - required, can be `max` or `min`.
 
+`key_weight` - convert the key value to a number for comparison. This is a mapping of possible key values to their weights. If a key value is not found in the mapping, it throws an error.
+
 ### flat
 
 Flatten the input array of arrays into a single array.
@@ -267,6 +269,12 @@ Todos
 
 Changelog
 ---------
+
+* Next
+
+  - Add: tokyomotion.
+  - Add: `url_match` to `response` step.
+  - Add: `key_weight` to `find` step.
 
 * 0.3.0 (Dec 26, 2025)
 

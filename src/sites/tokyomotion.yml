@@ -1,0 +1,56 @@
+id: tokyomotion
+
+db:
+  - version: 1
+    schema:
+      videos: id
+
+extractors:
+  video:
+    url: https://www.tokyomotion.net/video/:id/*
+    steps:
+      - use: const
+        value: {}
+      - use: response
+        type: text
+        output: html
+      - use: response
+        type: url_match
+        output: url_match
+      - use: json_get
+        path: url_match.pathname.groups.id
+        output: id
+      - use: re
+        input: html
+        pattern: '<title>(.*?) - TOKYO Motion</title>'
+        template: '$1'
+        output: title
+      - use: re
+        input: html
+        pattern: '<a href="/user/([^"]+)"><img'
+        template: '$1'
+        output: user_id
+      - use: re
+        input: html
+        pattern: '<source src="([^"]+)" default title="([^"]+)" type="video/([^"]+)"'
+        template: '{"url": "$1", "quality": "$2", "type": "$3"}'
+        all: true
+        output: srcs
+      - use: for_each
+        input: srcs
+        steps:
+          - use: json_parse
+        output: srcs
+      - use: find
+        key: quality
+        mode: max
+        input: srcs
+        output: best_src
+        key_weight:
+          'HD': 2
+          'SD': 1
+      - use: export
+        input: best_src.url
+        filename: '{id}_{user_id}_{title}.{best_src.type}'
+        type: download
+

@@ -28,6 +28,9 @@ const RESPONSE_TYPE = {
       RESPONSE_TYPE.text(ctx);
     }
     ctx.response.json = JSON.parse(ctx.response.text);
+  },
+  url_match: (ctx) => {
+    ctx.response.url_match = ctx.match
   }
 }
 
@@ -220,6 +223,17 @@ const STEPPER = {
   find: (ctx, step, input) => {
     let result = null;
     let value;
+    let valueWeight;
+    const keyWeight = (k) => {
+      if (step.key_weight) {
+        const result = jp.get(step.key_weight, k);
+        if (result !== undefined) {
+          return result;
+        }
+        throw new Error(`key_weight not found for key ${k}`);
+      }
+      return k;
+    };
     const cmp = (a, b) => {
       if (step.mode === "min") {
         return a < b;
@@ -229,8 +243,10 @@ const STEPPER = {
     }
     for (const item of input) {
       const newValue = jp.get(item, step.key);
-      if (value === undefined || cmp(newValue, value)) {
+      const newValueWeight = keyWeight(newValue);
+      if (value === undefined || cmp(newValueWeight, valueWeight)) {
         value = newValue;
+        valueWeight = newValueWeight;
         result = item;
       }
     }
@@ -361,6 +377,9 @@ export async function stepExecutor(ctx, model = null, shouldBreak = null) {
       input = jp.get(model, step.input);
     } else {
       input = model;
+    }
+    if (!STEPPER[step.use]) {
+      throw new Error(`Unknown step use: ${step.use}`);
     }
     const output = await STEPPER[step.use](ctx, step, input, model);
     // FIXME: should we allow falsy output?

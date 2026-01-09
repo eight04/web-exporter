@@ -2,12 +2,14 @@
 import fanbox from './fanbox.yml';
 import fantia from './fantia.yml';
 import plurk from './plurk.yml';
+import tokyomotion from './tokyomotion.yml';
 import twitter from './twitter.yml';
 
 export default {
   [fanbox.id]: fanbox,
   [fantia.id]: fantia,
   [plurk.id]: plurk,
+  [tokyomotion.id]: tokyomotion,
   [twitter.id]: twitter,
 };
 

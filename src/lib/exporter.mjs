@@ -79,6 +79,12 @@ function init() {
         conflictAction: "uniquify",
         saveAs: false,
         cookieStoreId: executorCtx?.request?.cookieStoreId,
+        headers: [
+          {
+            name: "Referer",
+            value: executorCtx?.request?.url || ""
+          }
+        ]
       });
     }
   }
