@@ -12,79 +12,18 @@ extractors:
     steps:
       - use: response
         type: json
-      - use: for_each
+      - use: call
         input: data.threaded_conversation_with_injections_v2.instructions
-        condition: 
-          type: TimelineAddEntries
-        steps:
-          - use: for_each
-            input: entries
-            condition:
-              entryId: '^tweet-\d+'
-            steps:
-              - use: store
-                input: content.itemContent.tweet_results.result.core.user_results.result
-                table: users
-                method: put
-              - use: store
-                input: content.itemContent.tweet_results.result.legacy
-                table: tweets
-                method: put
+        steps: extract_instructions
 
   user_media:
     url: https://x.com/i/api/graphql/:graph_query/UserMedia?*
     steps:
       - use: response
         type: json
-      - use: for_each
+      - use: Call
         input: data.user.result.timeline.timeline.instructions
-        steps:
-          - use: if
-            condition:
-              type: TimelineAddToModule
-            steps:
-              - use: for_each
-                input: moduleItems
-                steps:
-                  - use: json_get
-                    path: item.itemContent.tweet_results.result
-          - use: elif
-            condition:
-              type: TimelineAddEntries
-            steps:
-              - use: for_each
-                input: entries
-                condition:
-                  content.entryType: TimelineTimelineModule
-                steps:
-                  - use: for_each
-                    input: content.items
-                    steps:
-                      - use: json_get
-                        path: item.itemContent.tweet_results.result
-          - use: else
-            steps:
-              # cursor, clearCache entries
-              - use: const
-                value: []
-      - use: flat
-      - use: for_each
-        steps:
-          # sometime the tweet is wrapped in TweetWithVisibilityResults
-          - use: if
-            condition:
-              tweet.legacy: NOT_NULL
-            steps:
-              - use: json_get
-                path: tweet
-          - use: store
-            input: core.user_results.result
-            table: users
-            method: put
-          - use: store
-            input: legacy
-            table: tweets
-            method: put
+        steps: extract_instructions
 
   tweet_result_by_rest:
     url: https://api.x.com/graphql/:graph_query/TweetResultByRestId?*
@@ -98,7 +37,16 @@ extractors:
       - use: store
         input: data.tweetResult.result.legacy
         table: tweets
-        method: put
+        method: put 
+
+  search_timeline:
+    url: https://x.com/i/api/graphql/:graph_query/SearchTimeline?*
+    steps:
+      - use: response
+        type: json
+      - use: call
+        input: data.search_by_raw_query.search_timeline.timeline.instructions
+        steps: extract_instructions
 
 exporters:
   tweets:
@@ -167,3 +115,65 @@ exporters:
               - use: export
                 input: entities.urls[0].expanded_url
 
+extract_instructions:
+  - use: for_each
+    steps:
+      - use: if
+        condition:
+          type: TimelineAddToModule
+        steps:
+          - use: for_each
+            input: moduleItems
+            steps:
+              - use: json_get
+                path: item.itemContent.tweet_results.result
+      - use: elif
+        condition:
+          type: TimelineAddEntries
+        steps:
+          - use: for_each
+            input: entries
+            steps:
+              - use: if
+                condition:
+                  content.entryType: TimelineTimelineModule
+                steps:
+                  - use: for_each
+                    input: content.items
+                    steps:
+                      - use: json_get
+                        path: item.itemContent.tweet_results.result
+              - use: elif
+                condition:
+                  content.entryType: TimelineTimelineItem
+                steps:
+                  - use: json_get
+                    path: content.itemContent.tweet_results.result
+              - use: else
+                steps:
+                  # cursor, clearCache entries
+                  - use: const
+                    value: []
+      - use: else
+        steps:
+          # cursor, clearCache entries
+          - use: const
+            value: []
+  - use: flat
+  - use: for_each
+    steps:
+      # sometime the tweet is wrapped in TweetWithVisibilityResults
+      - use: if
+        condition:
+          tweet.legacy: NOT_NULL
+        steps:
+          - use: json_get
+            path: tweet
+      - use: store
+        input: core.user_results.result
+        table: users
+        method: put
+      - use: store
+        input: legacy
+        table: tweets
+        method: put
