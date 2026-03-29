@@ -13,7 +13,7 @@ Currently it only supports plurk.com.
 Add a site
 ----------
 
-Check `src/sites/*.yml` for examples.
+Check `src/static/sites/*.yml` for examples.
 
 ```yml
 id: <site_id> # required, unique site id

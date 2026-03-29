@@ -4,8 +4,7 @@ import {pEvent} from "p-event";
 import pyformat from "js-pyformat";
 import delay from "delay";
 
-import sites from "../sites/index.mjs";
-
+import {sites} from "./sites.mjs";
 import {getStore} from "./store.mjs";
 import {exporter} from "./exporter.mjs";
 import {extractor} from "./extractor.mjs";
@@ -361,7 +360,7 @@ const STEPPER = {
   },
   call: async (ctx, step, input) => {
     const site_id = ctx.site_id;
-    const steps = jp.get(sites[site_id], step.steps);
+    const steps = jp.get(sites.get(site_id), step.steps);
     if (!steps) {
       throw new Error(`call step: steps not found at path ${step.steps}`);
     }

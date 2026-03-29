@@ -1,12 +1,14 @@
 // import webextMenus from "webext-menus";
 import browser from "webextension-polyfill";
+import * as YAML from "yaml";
 
-import sites from "./sites/index.mjs";
+import {sites} from "./lib/sites.mjs";
 import {extractor} from "./lib/extractor.mjs";
 import {deleteAllDatabases} from "./lib/store.mjs";
 import {stepExecutor} from "./lib/step-executor.mjs";
 import {exporter} from "./lib/exporter.mjs";
 import {spiderHouse} from "./lib/spider-house.mjs";
+import {mutex} from "./lib/mutex.mjs";
 
 // this is used to log error raised by onMessage handler,
 // otherwise the stack trace will be removed after passing the error to the content script.
@@ -53,6 +55,10 @@ browser.runtime.onMessage.addListener(logError((message, sender) => {
       return spiderHouse.stop(message);
     case "isSpiderRunning":
       return Promise.resolve(spiderHouse.isRunning(message.tabId));
+    case "configUpdated":
+      return reloadConfig();
+    case "getSpiders":
+      return Promise.resolve(spiderHouse.getSpiders());
 	}
 }));
 
@@ -60,15 +66,42 @@ browser.browserAction.onClicked.addListener(() => {
   browser.sidebarAction.open();
 });
 
-for (const site of Object.values(sites)) {
-  for (const [key, value] of Object.entries(site.extractors)) {
-    extractor.addRule({
-      site_id: site.id,
-      extractor_id: key,
-      ...value
-    });
+reloadConfig();
+
+const reloadConfig = mutex(async function () {
+  const newSites = new Map();
+
+  let r;
+  r = await browser.storage.local.get("configIds");
+  const configIds = r.configIds || [];
+
+  if (configIds.length > 0) {
+    r = await browser.storage.local.get(configIds.map(id => `config/${id}`));
+    for (const key in r) {
+      const text = r[key];
+      const site = YAML.parse(text);
+      newSites.set(site.id, site);
+    }
   }
-}
+
+  r = await fetch(browser.runtime.getURL("sites/index.txt"));
+  const text = await r.text();
+  const defaultConfigIds = text.split("\n").map(line => line.trim()).filter(line => line);
+  for (const id of defaultConfigIds) {
+    if (newSites.has(id)) {
+      continue;
+    }
+    const r = await fetch(browser.runtime.getURL(`sites/${id}.yml`));
+    const text = await r.text();
+    const site = YAML.parse(text);
+    newSites.set(site.id, site);
+  }
+
+  sites.clear();
+  sites.update(newSites);
+  sites.ee.emit("reloaded");
+
+}, {maxPending: 2});
 
 function notifyError(err) {
   console.error(err);

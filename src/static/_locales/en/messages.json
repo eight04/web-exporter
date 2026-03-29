@@ -9,6 +9,23 @@
   "cancel": {
     "message": "Cancel"
   },
+  "save": {
+    "message": "Save"
+  },
+  "saved": {
+    "message": "Saved",
+    "description": "Message shown when settings are saved successfully."
+  },
+  "optionsErrorConfigExists": {
+    "message": "A configuration with the name '$NAME$' already exists.",
+    "description": "Error message when trying to save a configuration with a name that already exists.",
+    "placeholders": {
+      "NAME": {
+        "content": "$1",
+        "example": "Default Config"
+      }
+    }
+  },
   "joinTableIndexError": {
     "message": "No matching row found in '$TABLE$' for '$INDEX$' == $VALUE$",
     "description": "Error message when no matching row is found in a join table.",
@@ -26,6 +43,14 @@
         "example": "42"
       }
     }
+  },
+  "configOptionDefault": {
+    "message": "Default",
+    "description": "Label for default configuration option."
+  },
+  "configOptionUser": {
+    "message": "User",
+    "description": "Label for user configuration option."
   },
   "storePutMany": {
     "message": "Storing $COUNT$ items to '$TABLE$'...",
@@ -73,6 +98,24 @@
     "message": "Finished",
     "description": "Message shown when deleting a database is successful."
   },
+  "storeUpgradeDB": {
+    "message": "Upgrading database '$ID$' from version $OLD$ to $NEW$...",
+    "description": "Message shown when upgrading a database.",
+    "placeholders": {
+      "ID": {
+        "content": "$1",
+        "example": "twitter"
+      },
+      "OLD": {
+        "content": "$2",
+        "example": "1"
+      },
+      "NEW": {
+        "content": "$3",
+        "example": "2"
+      }
+    }
+  },
   "exportNoData": {
     "message": "No data to export",
     "description": "Message shown when there is no data to export."
@@ -114,6 +157,10 @@
   "sidebarBtnDeleteDB": {
     "message": "Delete Database",
     "description": "Button text to delete recorded data."
+  },
+  "sidebarBtnConfig": {
+    "message": "Config",
+    "description": "Button text to open configuration."
   },
   "sidebarSpiderLabel": {
     "message": "Spider:",
