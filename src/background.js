@@ -1,6 +1,6 @@
 // import webextMenus from "webext-menus";
 import browser from "webextension-polyfill";
-import * as YAML from "yaml";
+import {load as loadYaml} from "js-yaml";
 
 import {sites} from "./lib/sites.mjs";
 import {extractor} from "./lib/extractor.mjs";
@@ -66,8 +66,6 @@ browser.browserAction.onClicked.addListener(() => {
   browser.sidebarAction.open();
 });
 
-reloadConfig();
-
 const reloadConfig = mutex(async function () {
   const newSites = new Map();
 
@@ -79,7 +77,7 @@ const reloadConfig = mutex(async function () {
     r = await browser.storage.local.get(configIds.map(id => `config/${id}`));
     for (const key in r) {
       const text = r[key];
-      const site = YAML.parse(text);
+      const site = loadYaml(text);
       newSites.set(site.id, site);
     }
   }
@@ -93,7 +91,7 @@ const reloadConfig = mutex(async function () {
     }
     const r = await fetch(browser.runtime.getURL(`sites/${id}.yml`));
     const text = await r.text();
-    const site = YAML.parse(text);
+    const site = loadYaml(text);
     newSites.set(site.id, site);
   }
 
@@ -102,6 +100,8 @@ const reloadConfig = mutex(async function () {
   sites.ee.emit("reloaded");
 
 }, {maxPending: 2});
+
+reloadConfig();
 
 function notifyError(err) {
   console.error(err);

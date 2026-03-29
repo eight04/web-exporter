@@ -22,6 +22,7 @@ browser.storage.local.get("configIds").then(result => {
 
 let currentConfigId = $state("");
 let configContent = $state("");
+let statusText = $state("");
 
 $effect(() => {
   if (!currentConfigId) return;
@@ -31,11 +32,13 @@ $effect(() => {
       .then(res => res.text())
       .then(text => {
         configContent = text;
+        setClean();
       });
   } else {
     const path = `config/${currentConfigId}`;
     browser.storage.local.get(path).then(result => {
       configContent = result[path] || "";
+      setClean();
     });
   }
 });
@@ -45,18 +48,43 @@ async function save() {
   if (currentConfigId.startsWith("__default_")) {
     const id = currentConfigId.slice("__default_".length);
     if (configIds.includes(id)) {
-      throw new Error(_("optionsErrorConfigExists", id));
+      statusText = _("optionsErrorConfigExists", id);
+      return;
     }
     configIds.push(id);
     currentConfigId = id;
     const path = `config/${id}`;
-    await browser.storage.local.set({ configIds, [path]: configContent });
+    await browser.storage.local.set({ configIds: $state.snapshot(configIds), [path]: configContent });
   } else {
     const path = `config/${currentConfigId}`;
     await browser.storage.local.set({ [path]: configContent });
   }
-  alert(_("saved"));
-  browser.runtime.sendMessage({ type: "configUpdated", id: currentConfigId });
+  statusText = _("saved");
+  browser.runtime.sendMessage({ method: "configUpdated", id: currentConfigId });
+}
+
+async function deleteConfig() {
+  if (!currentConfigId || currentConfigId.startsWith("__default_")) return;
+  if (!confirm(_("optionsConfigDeleteConfirm", currentConfigId))) return;
+  const id = currentConfigId;
+  const path = `config/${id}`;
+  const newConfigIds = configIds.filter(cid => cid !== id);
+  await browser.storage.local.set({ configIds: newConfigIds });
+  await browser.storage.local.remove(path);
+  currentConfigId = "";
+  configContent = "";
+  configIds.length = 0;
+  configIds.push(...newConfigIds);
+  statusText = _("deleted");
+  browser.runtime.sendMessage({ method: "configUpdated", id });
+}
+
+function setDirty() {
+  statusText = "*";
+}
+
+function setClean() {
+  statusText = "";
 }
 </script>
 
@@ -80,8 +108,12 @@ async function save() {
     <button onclick={save}>
       {_("save")}
     </button>
+    <button onclick={deleteConfig} disabled={!currentConfigId || currentConfigId.startsWith("__default_")}>
+      {_("delete")}
+    </button>
+    <span class="status-text">{statusText}</span>
   </div>
-  <textarea bind:value={configContent} rows="20" cols="80"></textarea>
+  <textarea bind:value={configContent} rows="20" cols="80" class="codearea" oninput={setDirty}></textarea>
 </div>
 
 <style>
@@ -103,5 +135,8 @@ async function save() {
   > * {
     white-space: nowrap;
   }
+}
+.codearea {
+  font-family: monospace;
 }
 </style>

@@ -59,6 +59,7 @@
     "dexie": "^4.2.1",
     "event-lite": "^1.0.0",
     "js-pyformat": "^0.0.2",
+    "js-yaml": "^4.1.1",
     "linkify-plus-plus-core": "^0.8.1",
     "p-event": "^7.0.0",
     "urlpattern-polyfill": "^10.1.0"

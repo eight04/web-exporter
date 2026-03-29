@@ -13,12 +13,27 @@
     "message": "Save"
   },
   "saved": {
-    "message": "Saved",
-    "description": "Message shown when settings are saved successfully."
+    "message": "Saved"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "deleted": {
+    "message": "Deleted"
   },
   "optionsErrorConfigExists": {
     "message": "A configuration with the name '$NAME$' already exists.",
     "description": "Error message when trying to save a configuration with a name that already exists.",
+    "placeholders": {
+      "NAME": {
+        "content": "$1",
+        "example": "Default Config"
+      }
+    }
+  },
+  "optionsConfigDeleteConfirm": {
+    "message": "Are you sure you want to delete the configuration '$NAME$'? This action cannot be undone.",
+    "description": "Confirmation message before deleting a configuration.",
     "placeholders": {
       "NAME": {
         "content": "$1",

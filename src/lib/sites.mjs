@@ -1,7 +1,5 @@
 import EventLite from 'event-lite';
 
-export const sites = new SiteMap();
-
 class SiteMap extends Map {
   constructor() {
     super();
@@ -13,3 +11,6 @@ class SiteMap extends Map {
     }
   }
 }
+
+export const sites = new SiteMap();
+
