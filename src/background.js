@@ -138,7 +138,7 @@ function closeTab({tabId, opener}) {
 }
 
 async function exportData({type}) {
-  for (const [site_id, site] of Object.entries(sites)) {
+  for (const [site_id, site] of sites) {
     if (!site.exporters) {
       continue;
     }
