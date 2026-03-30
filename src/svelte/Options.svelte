@@ -14,34 +14,52 @@ fetch(browser.runtime.getURL("sites/index.txt"))
   });
 
 const configIds = $state([]);
+// FIXME: this may desync if configs are added/removed in other tabs
 browser.storage.local.get("configIds").then(result => {
   if (result.configIds) {
     configIds.push(...result.configIds);
   }
 });
 
+let openedConfigId = null;
 let currentConfigId = $state("");
 let configContent = $state("");
 let statusText = $state("");
+let loadingConfig = $state(false);
+let isDirty = $state(false);
 
-$effect(() => {
+function openFile() {
   if (!currentConfigId) return;
+  if (currentConfigId === openedConfigId) return;
+  if (isDirty && !confirm(_("optionsUnsavedChangesConfirm"))) {
+    // reset the select to the current config
+    currentConfigId = openedConfigId;
+    return;
+  }
+  openedConfigId = currentConfigId;
   if (currentConfigId.startsWith("__default_")) {
     const id = currentConfigId.slice("__default_".length);
+    loadingConfig = true;
     fetch(browser.runtime.getURL(`sites/${id}.yml`))
       .then(res => res.text())
       .then(text => {
         configContent = text;
         setClean();
+      })
+      .finally(() => {
+        loadingConfig = false;
       });
   } else {
     const path = `config/${currentConfigId}`;
+    loadingConfig = true;
     browser.storage.local.get(path).then(result => {
       configContent = result[path] || "";
       setClean();
+    }).finally(() => {
+      loadingConfig = false;
     });
   }
-});
+};
 
 async function save() {
   if (!currentConfigId) return;
@@ -85,10 +103,12 @@ async function deleteConfig() {
 
 function setDirty() {
   statusText = "*";
+  isDirty = true;
 }
 
 function setClean() {
   statusText = "";
+  isDirty = false;
 }
 </script>
 
@@ -96,7 +116,7 @@ function setClean() {
   <div class="actions">
     <label>
       <!-- <span>{_("optionsCurrentConfig")}</span> -->
-      <select bind:value={currentConfigId}>
+      <select bind:value={currentConfigId} disabled={loadingConfig} onchange={openFile}>
         <optgroup label={_("configOptionDefault")}>
           {#each defaultConfigIds as id}
             <option value="__default_{id}">{id}</option>
@@ -109,7 +129,7 @@ function setClean() {
         </optgroup>
       </select>
     </label>
-    <button onclick={save}>
+    <button onclick={save} disabled={!currentConfigId || loadingConfig || !isDirty}>
       {_("save")}
     </button>
     <button onclick={deleteConfig} disabled={!currentConfigId || isDefaultConfig()}>

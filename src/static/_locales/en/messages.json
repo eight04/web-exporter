@@ -41,6 +41,10 @@
       }
     }
   },
+  "optionsUnsavedChangesConfirm": {
+    "message": "You have unsaved changes. Are you sure you want to discard them?",
+    "description": "Confirmation message when navigating away with unsaved changes."
+  },
   "joinTableIndexError": {
     "message": "No matching row found in '$TABLE$' for '$INDEX$' == $VALUE$",
     "description": "Error message when no matching row is found in a join table.",
