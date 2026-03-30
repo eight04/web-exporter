@@ -22,6 +22,7 @@ class Store {
         delete CONNECTED_STORES[site_id];
         return;
       }
+      const lastDb = this.site.db[this.site.db.length - 1];
       const nextLastDb = site.db[site.db.length - 1];
       if (nextLastDb.version > lastDb.version) {
         logger.log(_("storeUpgradeDB", [site_id, lastDb.version, nextLastDb.version]));
