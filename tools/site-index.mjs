@@ -10,6 +10,7 @@ for await (const dirEntry of await fs.opendir('./src/static/sites')) {
   }
 }
 
+names.sort();
 const content = names.join('\n');
 
 await fs.writeFile('./src/static/sites/index.txt', content);
