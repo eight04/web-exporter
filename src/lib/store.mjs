@@ -4,6 +4,7 @@ import {sites} from "./sites.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 
+// FIXME: implement a StoreManager
 const CONNECTED_STORES = {};
 
 class Store {
@@ -13,13 +14,13 @@ class Store {
     const lastDb = site.db[site.db.length - 1];
     this.db.version(lastDb.version).stores(lastDb.schema);
     this.site = site;
+    this.cleanupFns = [() => this.db.close()];
 
-    sites.ee.on("reloaded", () => {
+    const onSiteReloaded = () => {
       const site = sites.get(site_id);
       if (!site) {
         logger.log(_("storeDeleteDB", [site_id]));
-        this.db.close();
-        delete CONNECTED_STORES[site_id];
+        this.destroy();
         return;
       }
       const lastDb = this.site.db[this.site.db.length - 1];
@@ -30,7 +31,16 @@ class Store {
         this.db.version(nextLastDb.version).stores(nextLastDb.schema);
         this.site = site;
       }
+    }
+    sites.ee.on("reloaded", onSiteReloaded);
+    this.cleanupFns.push(() => {
+      sites.ee.off("reloaded", onSiteReloaded);
     });
+  }
+  destroy() {
+    this.cleanupFns.forEach(fn => fn());
+    // FIXME: use event pattern so the instance won't touch the manager.
+    delete CONNECTED_STORES[this.site.id];
   }
   async put({extractor_id, table, value}) {
     return await this.putMany({extractor_id, table, value: [value]});
@@ -80,7 +90,7 @@ export function getStore(site_id) {
 
 export function disconnectAllStores() {
   for (const [key, store] of Object.entries(CONNECTED_STORES)) {
-    store.db.close();
+    store.destroy();
     delete CONNECTED_STORES[key];
   }
 }
