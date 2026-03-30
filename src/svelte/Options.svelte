@@ -61,6 +61,7 @@ function openFile() {
   }
 };
 
+// TODO: validate config content before saving
 async function save() {
   if (!currentConfigId) return;
   if (currentConfigId.startsWith("__default_")) {
@@ -79,6 +80,7 @@ async function save() {
   }
   statusText = _("saved");
   browser.runtime.sendMessage({ method: "configUpdated", id: currentConfigId });
+  openedConfigId = currentConfigId;
 }
 
 function isDefaultConfig() {
@@ -99,6 +101,7 @@ async function deleteConfig() {
   configIds.push(...newConfigIds);
   statusText = _("deleted");
   browser.runtime.sendMessage({ method: "configUpdated", id });
+  openedConfigId = null;
 }
 
 function setDirty() {
