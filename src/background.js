@@ -75,10 +75,20 @@ const reloadConfig = mutex(async function () {
 
   if (configIds.length > 0) {
     r = await browser.storage.local.get(configIds.map(id => `config/${id}`));
-    for (const key in r) {
-      const text = r[key];
-      const site = loadYaml(text);
-      newSites.set(site.id, site);
+    for (const id of configIds) {
+      try {
+        const text = r[`config/${id}`];
+        if (!text) {
+          throw new Error(`Config "${id}" not found`);
+        }
+        const site = loadYaml(text);
+        if (site.id !== id) {
+          throw new Error(`Config id mismatch: expected "${id}", got "${site.id}"`);
+        }
+        newSites.set(site.id, site);
+      } catch (err) {
+        notifyError(err);
+      }
     }
   }
 
@@ -86,13 +96,20 @@ const reloadConfig = mutex(async function () {
   const text = await r.text();
   const defaultConfigIds = text.split("\n").map(line => line.trim()).filter(line => line);
   for (const id of defaultConfigIds) {
-    if (newSites.has(id)) {
-      continue;
+    try {
+      if (newSites.has(id)) {
+        continue;
+      }
+      const r = await fetch(browser.runtime.getURL(`sites/${id}.yml`));
+      const text = await r.text();
+      const site = loadYaml(text);
+      if (site.id !== id) {
+        throw new Error(`Config id mismatch: expected "${id}", got "${site.id}"`);
+      }
+      newSites.set(site.id, site);
+    } catch (err) {
+      notifyError(err);
     }
-    const r = await fetch(browser.runtime.getURL(`sites/${id}.yml`));
-    const text = await r.text();
-    const site = loadYaml(text);
-    newSites.set(site.id, site);
   }
 
   sites.clear();
