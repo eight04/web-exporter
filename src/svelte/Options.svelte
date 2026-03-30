@@ -63,8 +63,12 @@ async function save() {
   browser.runtime.sendMessage({ method: "configUpdated", id: currentConfigId });
 }
 
+function isDefaultConfig() {
+  return currentConfigId.startsWith("__default_")
+}
+
 async function deleteConfig() {
-  if (!currentConfigId || currentConfigId.startsWith("__default_")) return;
+  if (!currentConfigId || isDefaultConfig()) return;
   if (!confirm(_("optionsConfigDeleteConfirm", currentConfigId))) return;
   const id = currentConfigId;
   const path = `config/${id}`;
@@ -108,7 +112,7 @@ function setClean() {
     <button onclick={save}>
       {_("save")}
     </button>
-    <button onclick={deleteConfig} disabled={!currentConfigId || currentConfigId.startsWith("__default_")}>
+    <button onclick={deleteConfig} disabled={!currentConfigId || isDefaultConfig()}>
       {_("delete")}
     </button>
     <span class="status-text">{statusText}</span>
