@@ -66,6 +66,7 @@ browser.browserAction.onClicked.addListener(() => {
   browser.sidebarAction.open();
 });
 
+// FIXME: reload only the changed config instead of all configs
 const reloadConfig = mutex(async function () {
   const newSites = new Map();
 
