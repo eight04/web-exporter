@@ -14,7 +14,7 @@ class Store {
     this.db.version(lastDb.version).stores(lastDb.schema);
     this.site = site;
 
-    sites.on("reloaded", () => {
+    sites.ee.on("reloaded", () => {
       const site = sites.get(site_id);
       if (!site) {
         logger.log(_("storeDeleteDB", [site_id]));
