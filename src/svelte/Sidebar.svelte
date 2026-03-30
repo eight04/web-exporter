@@ -1,5 +1,6 @@
 <script>
 import browser from "webextension-polyfill";
+import {URLPattern} from "urlpattern-polyfill";
 import {tick} from "svelte";
 
 import { _ } from "../lib/i18n.mjs";
