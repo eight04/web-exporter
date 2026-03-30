@@ -91,7 +91,7 @@ function setClean() {
 <div class="container">
   <div class="actions">
     <label>
-      <span>{_("optionsCurrentConfig")}</span>
+      <!-- <span>{_("optionsCurrentConfig")}</span> -->
       <select bind:value={currentConfigId}>
         <optgroup label={_("configOptionDefault")}>
           {#each defaultConfigIds as id}
