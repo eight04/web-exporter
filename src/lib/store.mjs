@@ -88,8 +88,7 @@ export function disconnectAllStores() {
 export async function deleteAllDatabases() {
   // FIXME: I can still see the database after Dexie.delete() is called? Though the data is gone.
   await disconnectAllStores();
-  const siteIds = Object.keys(sites);
-  for (const siteId of siteIds) {
+  for (const siteId of sites.keys()) {
     logger.log(_("storeDeleteDB", [siteId]));
     await Dexie.delete(`web_exporter/sites/${siteId}`);
     logger.log(_("storeDeleteDBSuccess"));
