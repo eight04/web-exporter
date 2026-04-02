@@ -21,7 +21,7 @@ extractors:
     steps:
       - use: response
         type: json
-      - use: Call
+      - use: call
         input: data.user.result.timeline.timeline.instructions
         steps: extract_instructions
 

@@ -1,18 +1,46 @@
 import Dexie from "dexie/dist/modern/dexie.mjs";
 
-import sites from "../sites/index.mjs";
+import {sites} from "./sites.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
 
+// FIXME: implement a StoreManager
 const CONNECTED_STORES = {};
 
 class Store {
   constructor(site_id) {
     this.db = new Dexie(`web_exporter/sites/${site_id}`);
-    const site = sites[site_id];
+    const site = sites.get(site_id);
     const lastDb = site.db[site.db.length - 1];
     this.db.version(lastDb.version).stores(lastDb.schema);
     this.site = site;
+    this.cleanupFns = [() => this.db.close()];
+
+    const onSiteReloaded = () => {
+      const site = sites.get(site_id);
+      if (!site) {
+        logger.log(_("storeDeleteDB", [site_id]));
+        this.destroy();
+        return;
+      }
+      const lastDb = this.site.db[this.site.db.length - 1];
+      const nextLastDb = site.db[site.db.length - 1];
+      if (nextLastDb.version > lastDb.version) {
+        logger.log(_("storeUpgradeDB", [site_id, lastDb.version, nextLastDb.version]));
+        this.db.close();
+        this.db.version(nextLastDb.version).stores(nextLastDb.schema);
+        this.site = site;
+      }
+    }
+    sites.ee.on("reloaded", onSiteReloaded);
+    this.cleanupFns.push(() => {
+      sites.ee.off("reloaded", onSiteReloaded);
+    });
+  }
+  destroy() {
+    this.cleanupFns.forEach(fn => fn());
+    // FIXME: use event pattern so the instance won't touch the manager.
+    delete CONNECTED_STORES[this.site.id];
   }
   async put({extractor_id, table, value}) {
     return await this.putMany({extractor_id, table, value: [value]});
@@ -62,7 +90,7 @@ export function getStore(site_id) {
 
 export function disconnectAllStores() {
   for (const [key, store] of Object.entries(CONNECTED_STORES)) {
-    store.db.close();
+    store.destroy();
     delete CONNECTED_STORES[key];
   }
 }
@@ -70,8 +98,7 @@ export function disconnectAllStores() {
 export async function deleteAllDatabases() {
   // FIXME: I can still see the database after Dexie.delete() is called? Though the data is gone.
   await disconnectAllStores();
-  const siteIds = Object.keys(sites);
-  for (const siteId of siteIds) {
+  for (const siteId of sites.keys()) {
     logger.log(_("storeDeleteDB", [siteId]));
     await Dexie.delete(`web_exporter/sites/${siteId}`);
     logger.log(_("storeDeleteDBSuccess"));

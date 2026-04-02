@@ -8,6 +8,7 @@
  * @param {number} [options.maxPending=Infinity] - Maximum number of pending invocations allowed in the queue. If set to 1, it behaves as a strict mutex. If set to 2, one invocation can be queued while another is running, and so on.
  * @returns {Function} A new function that enforces mutex behavior on the original function.
  */
+// FIXME: should use a more readable arg e.g. maxConcurrent and queueSize
 export function mutex(fn, {maxPending = Infinity} = {}) {
   let p = Promise.resolve();
   let pending = 0;

@@ -5,6 +5,6 @@
   "node_modules/js-pyformat/pyformat.js",
   "node_modules/random-int/index.js",
   "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-  "src/sites/index.mjs",
+  "src/svelte/Options.svelte",
   "src/svelte/Sidebar.svelte"
 ]

@@ -3,6 +3,7 @@ import browser from "webextension-polyfill";
 import {URLPattern} from "urlpattern-polyfill";
 import Events from "event-lite";
 
+import {sites} from "./sites.mjs";
 import {stepExecutor} from "./step-executor.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
@@ -98,7 +99,23 @@ class Extractor extends Events {
     rule.url = new URLPattern(rule.url);
     this.rules.push(rule);
   }
+  clearRules() {
+    this.rules = [];
+  }
 }
 
 export const extractor = new Extractor;
 
+sites.ee.on("reloaded", () => {
+  extractor.clearRules();
+
+  for (const site of sites.values()) {
+    for (const [key, value] of Object.entries(site.extractors)) {
+      extractor.addRule({
+        site_id: site.id,
+        extractor_id: key,
+        ...value
+      });
+    }
+  }
+});

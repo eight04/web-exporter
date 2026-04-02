@@ -15,6 +15,8 @@ import glob from "tiny-glob";
 const DEV = process.env.ROLLUP_WATCH || process.env.NODE_ENV === "development";
 
 const input = await glob("src/*.js");
+// file name without extension, e.g. "background" for "src/background.js"
+const fileName = path => path.split(/[\\/]/).pop().split(".")[0];
 
 export default async () => ({
   input,
@@ -65,7 +67,7 @@ export default async () => ({
         }
       },
       {
-        test: /(sidebar)\.js$/,
+        test: new RegExp(`(${input.map(fileName).join("|")})\\.js$`), // match any of the input files
         target: "build/$1.html",
         handle: (content, {htmlScripts}) => {
           return content.replace("</body>", `${htmlScripts}\n</body>`);

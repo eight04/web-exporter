@@ -1,11 +1,11 @@
 <script>
 import browser from "webextension-polyfill";
+import {URLPattern} from "urlpattern-polyfill";
 import {tick} from "svelte";
 
 import { _ } from "../lib/i18n.mjs";
 import {mutex} from "../lib/mutex.mjs";
 
-import sites from "../sites/index.mjs";
 import {currentTab} from "./current-tab.svelte.js";
 
 const MAX_LOGS = 100;
@@ -15,17 +15,17 @@ let logger;
 let recording = $state(false);
 let exportType = $state("media");
 
-const allSpiders = [];
-for (const site of Object.values(sites)) {
-  if (!site.spiders) continue;
-  for (const key in site.spiders) {
-    allSpiders.push({
-      id: key,
-      site_id: site.id,
-      url: new URLPattern(site.spiders[key].url),
-    });
+const allSpiders = $state([]); // { id: string, site_id: string, url: URLPattern }[]
+
+browser.runtime.sendMessage({ method: "getSpiders" }).then(result => {
+  allSpiders.length = 0;
+  allSpiders.push(...result);
+
+  for (const spider of allSpiders) {
+    // compile url
+    spider.url = new URLPattern(spider.url);
   }
-}
+});
 
 let spider = $state(null);
 let spiderRunning = $state(false);
@@ -129,6 +129,10 @@ async function disableButton(button, action) {
     button.disabled = false;
   }
 }
+
+function openConfig() {
+  browser.runtime.openOptionsPage();
+}
 </script>
 
 <div class="container">
@@ -167,6 +171,9 @@ async function disableButton(button, action) {
     </button>
     <button onclick={deleteDB}>
       {_("sidebarBtnDeleteDB")}
+    </button>
+    <button onclick={openConfig}>
+      {_("sidebarBtnConfig")}
     </button>
   </div>
   <span class="logger-head">
