@@ -81,6 +81,7 @@ async function save() {
   statusText = _("saved");
   browser.runtime.sendMessage({ method: "configUpdated", id: currentConfigId });
   openedConfigId = currentConfigId;
+  isDirty = false;
 }
 
 function isDefaultConfig() {
@@ -102,6 +103,7 @@ async function deleteConfig() {
   statusText = _("deleted");
   browser.runtime.sendMessage({ method: "configUpdated", id });
   openedConfigId = null;
+  isDirty = false;
 }
 
 function setDirty() {
