@@ -270,11 +270,13 @@ Todos
 Changelog
 ---------
 
-* Next
+* 0.4.0 (Apr 2, 2026)
 
   - Add: tokyomotion.
   - Add: `url_match` to `response` step.
   - Add: `key_weight` to `find` step.
+  - Add: options page to edit yml in the extension UI.
+  - Add: twitter search.
 
 * 0.3.0 (Dec 26, 2025)
 
