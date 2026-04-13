@@ -124,6 +124,8 @@ extract_instructions:
         steps:
           - use: for_each
             input: moduleItems
+            condition:
+              item.itemContent.tweet_results.result: NOT_NULL
             steps:
               - use: json_get
                 path: item.itemContent.tweet_results.result
@@ -169,10 +171,15 @@ extract_instructions:
         steps:
           - use: json_get
             path: tweet
-      - use: store
-        input: core.user_results.result
-        table: users
-        method: put
+      # sometime user_results.result is missing
+      - use: if
+        condition:
+          core.user_results.result: NOT_NULL
+        steps:
+          - use: store
+            input: core.user_results.result
+            table: users
+            method: put
       - use: store
         input: legacy
         table: tweets
