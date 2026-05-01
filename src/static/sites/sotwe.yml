@@ -8,9 +8,11 @@ db:
 extractors:
   main:
     url: https://www.sotwe.com/:user_id
+    type: main_frame
+    blocking: false
     steps:
       - use: wait
-        navigation: onDomContentLoaded
+        navigation: onDOMContentLoaded
       - use: scripting
         code: |
           const timeline = structuredClone(window.__NUXT__.state.user.timeline.data);
@@ -40,7 +42,7 @@ exporters:
                   $media.type: video
                 steps:
                   - use: json_get
-                    input: $media.videoURL
+                    path: $media.videoURL
               - use: else
                 steps:
                   - use: re

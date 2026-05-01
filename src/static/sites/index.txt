@@ -1,5 +1,6 @@
 fanbox
 fantia
 plurk
+sotwe
 tokyomotion
 twitter

@@ -40,14 +40,43 @@ class Extractor extends Events {
     const matches = [];
     for (const rule of this.rules) {
       const match = rule.url.exec(details.url);
-      if (match) {
-        matches.push({rule, match});
+      if (!match) {
+        continue;
       }
+      if (rule.type && rule.type !== details.type) {
+        continue;
+      }
+      matches.push({rule, match});
     }
     if (!matches.length) {
       return;
     }
     logger.log(_("extractorMatched", [details.url, matches.map(m => m.rule.extractor_id).join(", ")]));
+
+    const [blockingMatches, nonBlockingMatches] = matches.reduce(([blocking, nonBlocking], m) => {
+      if (m.rule.blocking !== false) {
+        blocking.push(m);
+      } else {
+        nonBlocking.push(m);
+      }
+      return [blocking, nonBlocking];
+    }, [[], []]);
+
+    for (const {rule, match} of nonBlockingMatches) {
+      const ctx = {
+        request: details,
+        tabId: details.tabId,
+        ...rule,
+        match
+      };
+      this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
+      stepExecutor(ctx).catch(e => {
+        logger.error(e);
+      });
+    }
+    if (!blockingMatches.length) {
+      return;
+    }
 
     const filter = browser.webRequest.filterResponseData(details.requestId);
     const chunks = [];
@@ -61,8 +90,9 @@ class Extractor extends Events {
       const ctx = {
         byteChunks: chunks,
         request: details,
+        tabId: details.tabId
       };
-      for (const {rule, match} of matches) {
+      for (const {rule, match} of blockingMatches) {
         Object.assign(ctx, {...rule, match});
         this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
         try {
@@ -71,6 +101,11 @@ class Extractor extends Events {
           logger.error(e);
         }
       }
+    }
+    filter.onerror = event => {
+      // FIXME: https://bugzilla.mozilla.org/show_bug.cgi?id=2036435
+      logger.error(`Error in filter for ${details.url}: ${event.target.error}`);
+      console.error(event);
     }
   }
   removeListener() {

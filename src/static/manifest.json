@@ -22,6 +22,8 @@
     "notifications",
     "webRequest",
     "webRequestBlocking",
+    "webRequestFilterResponse",
+    "webRequestFilterResponse.serviceWorkerScript",
     "webNavigation",
     "tabs",
     "downloads",
