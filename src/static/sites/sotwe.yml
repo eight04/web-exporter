@@ -1,0 +1,54 @@
+id: sotwe
+
+db:
+  - version: 1
+    schema:
+      posts: id
+
+extractors:
+  main:
+    url: https://www.sotwe.com/:user_id
+    steps:
+      - use: wait
+        navigation: onDomContentLoaded
+      - use: scripting
+        code: |
+          const timeline = structuredClone(window.__NUXT__.state.user.timeline.data);
+          return Object.values(timeline).flat();
+      - use: store
+        table: posts
+        method: putMany
+
+exporters:
+  posts:
+    type: media
+    steps:
+      - use: store
+        table: posts
+        method: getAll
+      - use: for_each
+        steps:
+          - use: date
+            input: createdAt
+            output: createdAt_date
+          - use: for_each
+            input: mediaEntities
+            ref: $media
+            steps:
+              - use: if
+                condition:
+                  $media.type: video
+                steps:
+                  - use: json_get
+                    input: $media.videoURL
+              - use: else
+                steps:
+                  - use: re
+                    input: $media.mediaURL
+                    pattern: '.*'
+                    template: '$&:orig'
+            output: download_urls
+          - use: export
+            input: download_urls
+            filename: '{user.username}_{id}_{index}_{createdAt_date:%y%m%d}{ext}'
+

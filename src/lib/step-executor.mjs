@@ -12,6 +12,8 @@ import {logger} from "./logger.mjs";
 // import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
 
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+
 const RESPONSE_TYPE = {
   text: (ctx) => {
     const decoder = new TextDecoder("utf-8");
@@ -326,8 +328,11 @@ const STEPPER = {
     if (step.seconds) {
       ps.push(delay(step.seconds * 1000, {signal: ctx.abortController?.signal}));
     }
+    if (step.navigation) {
+      ps.push(waitForNavigation({...ctx, event: step.navigation}));
+    }
     if (!ps.length) {
-      throw new Error("wait step requires extractor or seconds");
+      throw new Error("No wait condition specified");
     }
     await Promise.all(ps);
   },
@@ -365,6 +370,17 @@ const STEPPER = {
       throw new Error(`call step: steps not found at path ${step.steps}`);
     }
     return await stepExecutor({...ctx, steps}, input);
+  },
+  scripting: async (ctx, step) => {
+    const [result] = await browser.scripting.executeScript({
+      target: {tabId: ctx.tabId},
+      func: new AsyncFunction(step.code),
+      world: "MAIN"
+    });
+    if (result.error) {
+      throw new Error(`scripting error: ${result.error.message}`);
+    }
+    return result.result;
   }
 }
 
@@ -400,6 +416,31 @@ export async function stepExecutor(ctx, model = null, shouldBreak = null) {
     }
   }
   return model;
+}
+
+function waitForNavigation({tabId, event = "onCompleted", timeout = 30000, signal}) {
+  return new Promise((resolve, reject) => {
+    if (!Number.isInteger(tabId)) {
+      reject(new Error(`Invalid tabId for waitForNavigation: ${tabId}`));
+      return;
+    }
+    const listener = (details) => {
+      if (details.tabId === tabId) {
+        browser.webNavigation[event].removeListener(listener);
+        resolve();
+      }
+    };
+    browser.webNavigation[event].addListener(listener);
+    const timer = setTimeout(() => {
+      browser.webNavigation[event].removeListener(listener);
+      reject(new Error("Navigation timeout"));
+    }, timeout);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      browser.webNavigation[event].removeListener(listener);
+      reject(new Error("Navigation wait aborted"));
+    });
+  });
 }
 
 function compileConditionObj(conditionObj) {
