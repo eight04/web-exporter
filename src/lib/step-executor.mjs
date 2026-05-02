@@ -422,14 +422,16 @@ function waitForNavigation({tabId, event = "onCompleted", timeout = 30000, signa
       cleanup();
       reject(new Error("Navigation timeout"));
     }, timeout);
-    signal?.addEventListener("abort", () => {
+    const signalListener = () => {
       cleanup();
       reject(new Error("Navigation wait aborted"));
-    });
+    }
+    signal?.addEventListener("abort", signalListener);
 
     function cleanup() {
       clearTimeout(timer);
       browser.webNavigation[event].removeListener(listener);
+      signal?.removeEventListener("abort", signalListener);
     }
   });
 }

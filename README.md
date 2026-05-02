@@ -234,7 +234,7 @@ Wait for a specified event.
 
 `seconds` - optional, the number of seconds to wait. This ensures a minimum wait time even if the extractor event is triggered earlier.
 
-`navigation` - optional, can be "onCompleted", "onDomContentLoaded", etc. Wait for a `webNavigation` event. See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webNavigation#events.
+`navigation` - optional, can be "onCompleted", "onDOMContentLoaded", etc. Wait for a `webNavigation` event. See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webNavigation#events.
 
 `timeout` - optional, the maximum time to wait in seconds. If the event is not triggered within this time, it will stop waiting and throw.
 
