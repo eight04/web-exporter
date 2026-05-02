@@ -407,22 +407,30 @@ function waitForNavigation({tabId, event = "onCompleted", timeout = 30000, signa
       reject(new Error(`Invalid tabId for waitForNavigation: ${tabId}`));
       return;
     }
+    if (!browser.webNavigation[event]) {
+      reject(new Error(`Invalid navigation event: ${event}`));
+      return;
+    }
     const listener = (details) => {
       if (details.tabId === tabId) {
-        browser.webNavigation[event].removeListener(listener);
+        cleanup();
         resolve();
       }
     };
     browser.webNavigation[event].addListener(listener);
     const timer = setTimeout(() => {
-      browser.webNavigation[event].removeListener(listener);
+      cleanup();
       reject(new Error("Navigation timeout"));
     }, timeout);
     signal?.addEventListener("abort", () => {
-      clearTimeout(timer);
-      browser.webNavigation[event].removeListener(listener);
+      cleanup();
       reject(new Error("Navigation wait aborted"));
     });
+
+    function cleanup() {
+      clearTimeout(timer);
+      browser.webNavigation[event].removeListener(listener);
+    }
   });
 }
 
