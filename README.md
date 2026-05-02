@@ -230,9 +230,13 @@ Click an element on the page.
 
 Wait for a specified event.
 
-`extractor` - the name of the extractor to wait for.
+`extractor` - optional. The name of the extractor to wait for.
 
 `seconds` - optional, the number of seconds to wait. This ensures a minimum wait time even if the extractor event is triggered earlier.
+
+`navigation` - optional, can be "onCompleted", "onDOMContentLoaded", etc. Wait for a `webNavigation` event. See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webNavigation#events.
+
+`timeout` - optional, the maximum time to wait in seconds. If the event is not triggered within this time, it will stop waiting and throw.
 
 ### loop
 
@@ -259,6 +263,12 @@ Convert a number to a string. This is basically the `toString` method of Number.
 Call another extractor/exporter/anything in the yml as a subroutine.
 
 `steps` - required, a json path relative to the yml document. It should point to an array of steps.
+
+### scripting
+
+Run JavaScript code in the context of the page.
+
+`code` - required, the script code to run. The code is the body of an async function. You can use `return` to return a value.
 
 Todos
 -----

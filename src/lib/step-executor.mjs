@@ -12,26 +12,7 @@ import {logger} from "./logger.mjs";
 // import {_} from "./i18n.mjs";
 import * as jp from "./json-path.mjs";
 
-const RESPONSE_TYPE = {
-  text: (ctx) => {
-    const decoder = new TextDecoder("utf-8");
-    let result = "";
-    for (const chunk of ctx.byteChunks) {
-      result += decoder.decode(chunk, {stream: true});
-    }
-    result += decoder.decode();
-    ctx.response.text = result;
-  },
-  json: (ctx) => {
-    if (!ctx.response.text) {
-      RESPONSE_TYPE.text(ctx);
-    }
-    ctx.response.json = JSON.parse(ctx.response.text);
-  },
-  url_match: (ctx) => {
-    ctx.response.url_match = ctx.match
-  }
-}
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
 const DEFAULT_RX = {
   ...RX
@@ -46,13 +27,11 @@ const BUILTIN_CONDITIONS = {
 
 const STEPPER = {
   response: async (ctx, step) => {
-    if (!ctx.response) {
-      ctx.response = {};
+    // FIXME: url_match probably shouldn't be treated as a response type
+    if (step.type === "url_match") {
+      return ctx.match;
     }
-    if (!ctx.response[step.type]) {
-      await RESPONSE_TYPE[step.type](ctx)
-    }
-    return ctx.response[step.type];
+    return await ctx.response[step.type]();
   },
   re: (ctx, step, input) => {
     if (!step.re) {
@@ -319,15 +298,24 @@ const STEPPER = {
   },
   wait: async (ctx, step) => {
     const ps = [];
+    const timeout = step.timeout !== undefined ? step.timeout * 1000 : 30000;
     if (step.extractor) {
       const hash = `${ctx.site_id}::${step.extractor}::start`;
-      ps.push(pEvent(extractor, hash, {timeout: step.timeout || 30000, signal: ctx.abortController?.signal}));
+      ps.push(pEvent(extractor, hash, {timeout, signal: ctx.abortController?.signal}));
     }
     if (step.seconds) {
       ps.push(delay(step.seconds * 1000, {signal: ctx.abortController?.signal}));
     }
+    if (step.navigation) {
+      ps.push(waitForNavigation({
+        ...ctx,
+        event: step.navigation,
+        timeout,
+        signal: ctx.abortController?.signal
+      }));
+    }
     if (!ps.length) {
-      throw new Error("wait step requires extractor or seconds");
+      throw new Error("No wait condition specified");
     }
     await Promise.all(ps);
   },
@@ -365,6 +353,17 @@ const STEPPER = {
       throw new Error(`call step: steps not found at path ${step.steps}`);
     }
     return await stepExecutor({...ctx, steps}, input);
+  },
+  scripting: async (ctx, step) => {
+    const [result] = await browser.scripting.executeScript({
+      target: {tabId: ctx.tabId},
+      func: new AsyncFunction(step.code),
+      world: "MAIN"
+    });
+    if (result.error) {
+      throw new Error(`scripting error: ${result.error.message}`);
+    }
+    return result.result;
   }
 }
 
@@ -400,6 +399,41 @@ export async function stepExecutor(ctx, model = null, shouldBreak = null) {
     }
   }
   return model;
+}
+
+function waitForNavigation({tabId, event = "onCompleted", timeout = 30000, signal}) {
+  return new Promise((resolve, reject) => {
+    if (!Number.isInteger(tabId)) {
+      reject(new Error(`Invalid tabId for waitForNavigation: ${tabId}`));
+      return;
+    }
+    if (!browser.webNavigation[event]) {
+      reject(new Error(`Invalid navigation event: ${event}`));
+      return;
+    }
+    const listener = (details) => {
+      if (details.tabId === tabId) {
+        cleanup();
+        resolve();
+      }
+    };
+    browser.webNavigation[event].addListener(listener);
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Navigation timeout"));
+    }, timeout);
+    const signalListener = () => {
+      cleanup();
+      reject(new Error("Navigation wait aborted"));
+    }
+    signal?.addEventListener("abort", signalListener);
+
+    function cleanup() {
+      clearTimeout(timer);
+      browser.webNavigation[event].removeListener(listener);
+      signal?.removeEventListener("abort", signalListener);
+    }
+  });
 }
 
 function compileConditionObj(conditionObj) {

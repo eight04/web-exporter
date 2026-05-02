@@ -50,6 +50,9 @@ class Store {
       console.warn("storePutMany called with empty value array");
       return;
     }
+    if (value.some(v => v == null)) {
+      throw new Error("storePutMany called with null or undefined value");
+    }
     const primaryKey = this.db[table].schema.primKey.name;
     logger.log(_("storePutMany", [value.length, table]));
     value.forEach(v => {

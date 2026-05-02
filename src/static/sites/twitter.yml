@@ -180,7 +180,12 @@ extract_instructions:
             input: core.user_results.result
             table: users
             method: put
-      - use: store
-        input: legacy
-        table: tweets
-        method: put
+      # deleted posts will not have legacy field but tombstone field
+      - use: if
+        condition:
+          legacy: NOT_NULL
+        steps:
+          - use: store
+            input: legacy
+            table: tweets
+            method: put

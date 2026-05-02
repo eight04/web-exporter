@@ -7,6 +7,7 @@ import {sites} from "./sites.mjs";
 import {stepExecutor} from "./step-executor.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
+import {Response} from "./response.js";
 
 class Extractor extends Events {
   constructor() {
@@ -40,37 +41,32 @@ class Extractor extends Events {
     const matches = [];
     for (const rule of this.rules) {
       const match = rule.url.exec(details.url);
-      if (match) {
-        matches.push({rule, match});
+      if (!match) {
+        continue;
       }
+      if (rule.type && rule.type !== details.type) {
+        continue;
+      }
+      matches.push({rule, match});
     }
     if (!matches.length) {
       return;
     }
     logger.log(_("extractorMatched", [details.url, matches.map(m => m.rule.extractor_id).join(", ")]));
 
-    const filter = browser.webRequest.filterResponseData(details.requestId);
-    const chunks = [];
-
-    filter.ondata = event => {
-      chunks.push(event.data);
-      filter.write(event.data);
-    }
-    filter.onstop = async () => {
-      filter.disconnect();
+    const response = new Response(details);
+    for (const {rule, match} of matches) {
       const ctx = {
-        byteChunks: chunks,
         request: details,
+        tabId: details.tabId,
+        ...rule,
+        match,
+        response
       };
-      for (const {rule, match} of matches) {
-        Object.assign(ctx, {...rule, match});
-        this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
-        try {
-          await stepExecutor(ctx);
-        } catch (e) {
-          logger.error(e);
-        }
-      }
+      this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
+      stepExecutor(ctx).catch(e => {
+        logger.error(e);
+      });
     }
   }
   removeListener() {
