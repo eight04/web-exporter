@@ -236,6 +236,8 @@ Wait for a specified event.
 
 `navigation` - optional, can be "onCompleted", "onDomContentLoaded", etc. Wait for a `webNavigation` event. See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webNavigation#events.
 
+`timeout` - optional, the maximum time to wait in seconds. If the event is not triggered within this time, it will stop waiting and throw.
+
 ### loop
 
 Repeat a set of steps until loop_break step is called.

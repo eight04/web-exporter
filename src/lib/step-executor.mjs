@@ -298,15 +298,21 @@ const STEPPER = {
   },
   wait: async (ctx, step) => {
     const ps = [];
+    const timeout = step.timeout !== undefined ? step.timeout * 1000 : 30000;
     if (step.extractor) {
       const hash = `${ctx.site_id}::${step.extractor}::start`;
-      ps.push(pEvent(extractor, hash, {timeout: step.timeout || 30000, signal: ctx.abortController?.signal}));
+      ps.push(pEvent(extractor, hash, {timeout, signal: ctx.abortController?.signal}));
     }
     if (step.seconds) {
       ps.push(delay(step.seconds * 1000, {signal: ctx.abortController?.signal}));
     }
     if (step.navigation) {
-      ps.push(waitForNavigation({...ctx, event: step.navigation}));
+      ps.push(waitForNavigation({
+        ...ctx,
+        event: step.navigation,
+        timeout,
+        signal: ctx.abortController?.signal
+      }));
     }
     if (!ps.length) {
       throw new Error("No wait condition specified");
