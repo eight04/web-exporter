@@ -9,7 +9,6 @@ extractors:
   main:
     url: https://www.sotwe.com/:user_id
     type: main_frame
-    blocking: false
     steps:
       - use: wait
         navigation: onDOMContentLoaded

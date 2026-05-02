@@ -27,6 +27,7 @@ db:
 extractor:
   [extractor_name]:
     url: <url_pattern> # required, a URLPattern string to match requests
+    type: <resource_type> # optional, limit the type of webRequest to listen to. See https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest/ResourceType
     steps:             # list of steps to extract data
       - use: <step_name>
         [param1]: <value1>
