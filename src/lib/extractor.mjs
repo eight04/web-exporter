@@ -7,6 +7,7 @@ import {sites} from "./sites.mjs";
 import {stepExecutor} from "./step-executor.mjs";
 import {logger} from "./logger.mjs";
 import {_} from "./i18n.mjs";
+import {Response} from "./response.js";
 
 class Extractor extends Events {
   constructor() {
@@ -53,59 +54,19 @@ class Extractor extends Events {
     }
     logger.log(_("extractorMatched", [details.url, matches.map(m => m.rule.extractor_id).join(", ")]));
 
-    const [blockingMatches, nonBlockingMatches] = matches.reduce(([blocking, nonBlocking], m) => {
-      if (m.rule.blocking !== false) {
-        blocking.push(m);
-      } else {
-        nonBlocking.push(m);
-      }
-      return [blocking, nonBlocking];
-    }, [[], []]);
-
-    for (const {rule, match} of nonBlockingMatches) {
+    const response = new Response(details);
+    for (const {rule, match} of matches) {
       const ctx = {
         request: details,
         tabId: details.tabId,
         ...rule,
-        match
+        match,
+        response
       };
       this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
       stepExecutor(ctx).catch(e => {
         logger.error(e);
       });
-    }
-    if (!blockingMatches.length) {
-      return;
-    }
-
-    const filter = browser.webRequest.filterResponseData(details.requestId);
-    const chunks = [];
-
-    filter.ondata = event => {
-      chunks.push(event.data);
-      filter.write(event.data);
-    }
-    filter.onstop = async () => {
-      filter.disconnect();
-      const ctx = {
-        byteChunks: chunks,
-        request: details,
-        tabId: details.tabId
-      };
-      for (const {rule, match} of blockingMatches) {
-        Object.assign(ctx, {...rule, match});
-        this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
-        try {
-          await stepExecutor(ctx);
-        } catch (e) {
-          logger.error(e);
-        }
-      }
-    }
-    filter.onerror = event => {
-      // FIXME: https://bugzilla.mozilla.org/show_bug.cgi?id=2036435
-      logger.error(`Error in filter for ${details.url}: ${event.target.error}`);
-      console.error(event);
     }
   }
   removeListener() {

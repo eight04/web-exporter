@@ -14,27 +14,6 @@ import * as jp from "./json-path.mjs";
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
-const RESPONSE_TYPE = {
-  text: (ctx) => {
-    const decoder = new TextDecoder("utf-8");
-    let result = "";
-    for (const chunk of ctx.byteChunks) {
-      result += decoder.decode(chunk, {stream: true});
-    }
-    result += decoder.decode();
-    ctx.response.text = result;
-  },
-  json: (ctx) => {
-    if (!ctx.response.text) {
-      RESPONSE_TYPE.text(ctx);
-    }
-    ctx.response.json = JSON.parse(ctx.response.text);
-  },
-  url_match: (ctx) => {
-    ctx.response.url_match = ctx.match
-  }
-}
-
 const DEFAULT_RX = {
   ...RX
 };
@@ -48,13 +27,11 @@ const BUILTIN_CONDITIONS = {
 
 const STEPPER = {
   response: async (ctx, step) => {
-    if (!ctx.response) {
-      ctx.response = {};
+    // FIXME: url_match probably shouldn't be treated as a response type
+    if (step.type === "url_match") {
+      return ctx.match;
     }
-    if (!ctx.response[step.type]) {
-      await RESPONSE_TYPE[step.type](ctx)
-    }
-    return ctx.response[step.type];
+    return await ctx.response[step.type]();
   },
   re: (ctx, step, input) => {
     if (!step.re) {
