@@ -1,0 +1,71 @@
+id: xcancel
+
+db:
+  - version: 1
+    schema:
+      posts: id
+
+extractors:
+  main:
+    url: https://xcancel.com/:user_id/:category?
+    type: main_frame
+    steps:
+      - use: wait
+        navigation: onDOMContentLoaded
+      - use: scripting
+        code: |
+          const r = [];
+          const items = document.querySelectorAll('.timeline-item:not(.show-more)');
+          for (const item of items) {
+            const id = item.querySelector(".tweet-link").href.match(/status\/(\d+)/)[1];
+            const username = item.querySelector(".username").href.split("/").pop();
+            const date = item.querySelector(".tweet-date a").title.replace(" · ", " ");
+            const content = item.querySelector(".tweet-content").textContent.trim();
+            const sources = item.querySelectorAll(".attachments video source");
+            const imageLinks = item.querySelectorAll(".attachments a.still-image");
+            const spaceLinks = item.querySelectorAll("a.card-container[href*='i/spaces/']");
+            const broadcastLinks = item.querySelectorAll("a.card-content-container[href*='i/broadcasts/']");
+            r.push({
+              id,
+              username,
+              date: new Date(date),
+              content,
+              videos: Array.from(sources).map(source => source.src),
+              images: Array.from(imageLinks).map(link => link.href),
+              spaces: Array.from(spaceLinks).map(link => link.href.replace("xcancel", "x")),
+              broadcasts: Array.from(broadcastLinks).map(link => link.href.replace("xcancel", "x"))
+            });
+          }
+          return r;
+      - use: store
+        table: posts
+        method: putMany
+
+exporters:
+  tweets:
+    type: media
+    steps:
+      - use: store
+        table: posts
+        method: getAll
+      - use: for_each
+        steps:
+          - use: export
+            input: videos
+            filename: '{username}_{id}_video_{index}_{date:%y%m%d}{ext}'
+          - use: export
+            input: images
+            filename: '{username}_{id}_photo_{index}_{date:%y%m%d}{ext}'
+
+  spaces_broadcasts:
+    type: url
+    steps:
+      - use: store
+        table: posts
+        method: getAll
+      - use: for_each
+        steps:
+          - use: export
+            input: spaces
+          - use: export
+            input: broadcasts
