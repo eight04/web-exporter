@@ -274,12 +274,19 @@ Run JavaScript code in the context of the page.
 Todos
 -----
 
-* Add `spiders` to click links or scroll pages automatically to load more data?
 * Add XHR, fetch mock so the extension can work on Chrome?
-* Make yml editable in the extension UI?
 
 Changelog
 ---------
+
+* 0.5.0 (Aug 6, 2026)
+
+  - Add: xcancel.
+  - Add: sotwe.
+  - Add: timeout, navigation to wait step.
+  - Add: scripting step to run JS code in the page context.
+  - Fix: twitter tombstone.
+  - Bump node version.
 
 * 0.4.0 (Apr 2, 2026)
 
