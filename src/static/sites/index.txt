@@ -4,3 +4,4 @@ plurk
 sotwe
 tokyomotion
 twitter
+xcancel
