@@ -64,9 +64,13 @@ class Extractor extends Events {
         response
       };
       this.emit(`${rule.site_id}::${rule.extractor_id}::start`);
-      stepExecutor(ctx).catch(e => {
-        logger.error(e);
-      });
+      stepExecutor(ctx)
+        .catch(e => {
+          logger.error(e);
+        })
+        .finally(() => {
+          this.emit(`${rule.site_id}::${rule.extractor_id}::end`);
+        });
     }
   }
   removeListener() {

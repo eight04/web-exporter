@@ -300,7 +300,9 @@ const STEPPER = {
     const ps = [];
     const timeout = step.timeout !== undefined ? step.timeout * 1000 : 30000;
     if (step.extractor) {
-      const hash = `${ctx.site_id}::${step.extractor}::start`;
+      const hash = step.extractor.includes("::") ?
+        `${ctx.site_id}::${step.extractor}` :
+        `${ctx.site_id}::${step.extractor}::start`;
       ps.push(pEvent(extractor, hash, {timeout, signal: ctx.abortController?.signal}));
     }
     if (step.seconds) {

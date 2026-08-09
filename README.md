@@ -231,7 +231,7 @@ Click an element on the page.
 
 Wait for a specified event.
 
-`extractor` - optional. The name of the extractor to wait for.
+`extractor` - optional. It should be the extractor name and followed by `::` and the event name. Currently there are only `start` and `end` events. For example, `my_extractor::start` will wait for the start event of the extractor named `my_extractor`.
 
 `seconds` - optional, the number of seconds to wait. This ensures a minimum wait time even if the extractor event is triggered earlier.
 

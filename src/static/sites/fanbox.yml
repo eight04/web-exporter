@@ -13,7 +13,7 @@ extractors:
       - use: response
         type: json
       - use: store
-        input: body
+        input: body.posts
         table: posts
         method: putMany
 
@@ -23,7 +23,7 @@ extractors:
       - use: response
         type: json
       - use: store
-        input: body
+        input: body.post
         table: postInfos
         method: put
 
@@ -95,4 +95,4 @@ spiders:
           - use: spider_refresh
             url: /posts/{id}
           - use: wait
-            extractor: post_info
+            extractor: post_info::end
