@@ -25,7 +25,7 @@ function init() {
       let text = "";
       for (const t of tasks) {
         if (t.filename) {
-          text += `${t.url}#out=${t.filename}\n`;
+          text += `${t.url}#out=${encodeURIComponent(t.filename)}\n`;
         } else {
           text += `${t.url}\n`;
         }
