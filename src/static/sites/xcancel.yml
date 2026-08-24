@@ -15,7 +15,7 @@ extractors:
       - use: scripting
         code: |
           const r = [];
-          const items = document.querySelectorAll('.timeline-item:not(.show-more)');
+          const items = document.querySelectorAll('.timeline-item:not(.show-more, .unavailable)');
           for (const item of items) {
             const id = item.querySelector(".tweet-link").href.match(/status\/(\d+)/)[1];
             const username = item.querySelector(".username").href.split("/").pop();
