@@ -279,6 +279,12 @@ Todos
 Changelog
 ---------
 
+* 0.6.0 (Oct 5, 2026)
+
+  - Fix: fanbox.
+  - Fix: xcancel.
+  - Fix: encode filename in exporter.
+
 * 0.5.0 (Aug 6, 2026)
 
   - Add: xcancel.
