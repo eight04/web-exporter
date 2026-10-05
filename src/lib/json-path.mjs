@@ -55,6 +55,9 @@ export function set(obj, path, value) {
         current[key] = typeof keys[i + 1] === "number" ? [] : {};
       }
       current = current[key];
+      if (!current) {
+        throw new Error(`Cannot set value at path: ${path}, because ${keys.slice(0, i + 1).join('.')} is not an object`);
+      }
     }
   }
 }

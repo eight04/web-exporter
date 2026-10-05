@@ -35,6 +35,8 @@ exporters:
         table: postInfos
         method: getAll
       - use: for_each
+        condition:
+          body: NOT_NULL
         steps:
           - use: date
             input: publishedDatetime
