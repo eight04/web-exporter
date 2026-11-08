@@ -7,7 +7,7 @@ db:
 
 extractors:
   main:
-    url: https://xcancel.com/:user_id/:category?
+    url: https://(xcancel\.com|shitter\.thepixora\.com|lightbrd\.com)/:user_id/:category?
     type: main_frame
     steps:
       - use: wait
@@ -25,6 +25,11 @@ extractors:
             const imageLinks = item.querySelectorAll(".attachments a.still-image");
             const spaceLinks = item.querySelectorAll("a.card-container[href*='i/spaces/']");
             const broadcastLinks = item.querySelectorAll("a.card-content-container[href*='i/broadcasts/']");
+            const changeDomain = (url, domain) => {
+              const u = new URL(url);
+              u.hostname = domain;
+              return u.href;
+            }
             r.push({
               id,
               username,
@@ -32,8 +37,8 @@ extractors:
               content,
               videos: Array.from(sources).map(source => source.src),
               images: Array.from(imageLinks).map(link => link.href),
-              spaces: Array.from(spaceLinks).map(link => link.href.replace("xcancel", "x")),
-              broadcasts: Array.from(broadcastLinks).map(link => link.href.replace("xcancel", "x"))
+              spaces: Array.from(spaceLinks).map(link => changeDomain(link.href, "x.com")),
+              broadcasts: Array.from(broadcastLinks).map(link => changeDomain(link.href, "x.com"))
             });
           }
           return r;
